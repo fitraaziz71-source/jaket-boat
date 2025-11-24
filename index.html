@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Auto Book Ticket</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f3f4f6;
+      color: #111827;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 960px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 15px 40px rgba(15, 23, 42, 0.12);
+      padding: 24px 24px 32px;
+    }
+
+    h1 {
+      margin: 0 0 4px;
+      font-size: 24px;
+      letter-spacing: 0.02em;
+    }
+
+    .subtitle {
+      margin: 0 0 20px;
+      font-size: 14px;
+      color: #6b7280;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 14px;
+    }
+
+    .field label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 4px;
+    }
+
+    .field small {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    input[type="number"],
+    select {
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      padding: 8px 10px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.2);
+    }
+
+    .section-title {
+      margin: 18px 0 8px;
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title span {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .passengers-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .passenger-card {
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      padding: 12px 12px 10px;
+      background: #f9fafb;
+      position: relative;
+    }
+
+    .passenger-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .passenger-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #e5f2ff;
+      color: #1d4ed8;
+      font-weight: 600;
+    }
+
+    .passenger-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: none;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: transform 0.05s ease, box-shadow 0.1s ease, background 0.15s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: white;
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+    }
+
+    .btn-secondary {
+      background: #f3f4f6;
+      color: #111827;
+      border: 1px solid #e5e7eb;
+    }
+
+    .btn-danger {
+      background: #fee2e2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+      padding: 4px 10px;
+      font-size: 12px;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+
+    .btn[disabled] {
+      opacity: 0.6;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .footer-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 20px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .status {
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .status.error {
+      color: #b91c1c;
+    }
+
+    .status.success {
+      color: #15803d;
+    }
+
+    pre {
+      background: #0b1120;
+      color: #e5e7eb;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 12px;
+      overflow-x: auto;
+      max-height: 260px;
+      margin-top: 16px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    @media (max-width: 640px) {
+      .app {
+        padding: 16px 14px 22px;
+      }
+      .footer-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .footer-actions .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>Auto Booking Tiket</h1>
+    <p class="subtitle">
+      Pembelian tiket dapat di lakukan mulai pukul 10.00 WIB - 23.59 WIB.
+    </p>
+
+    <form id="bookingForm">
+      <!-- SECTION 1: TRIP INFO -->
+      <div class="section-title">
+        <span>1</span> Detail Perjalanan
+      </div>
+      <div class="grid">
+        <div class="field">
+          <label for="asal">Asal</label>
+          <select id="asal" required>
+            <option value="1" selected>Pelabuhan Muara Angke</option>
+            <option value="2">Pulau Untung Jawa</option>
+            <option value="3">Pulau Lancang</option>
+            <option value="4">Pulau Pari</option>
+            <option value="5">Pulau Payung</option>
+            <option value="6">Pulau Tidung</option>
+            <option value="7">Pulau Panggang</option>
+            <option value="8">Pulau Pramuka</option>
+            <option value="9">Pulau Kelapa</option>
+            <option value="13">Pulau Sabira</option>
+            <option value="15">Pulau Cipir - Onrust - Bidadari - Pelabuhan Muara Angke</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="tujuan">Tujuan</label>
+          <select id="tujuan" required>
+            <option value="1">Pelabuhan Muara Angke</option>
+            <option value="2">Pulau Untung Jawa</option>
+            <option value="3">Pulau Lancang</option>
+            <option value="4" selected>Pulau Pari</option>
+            <option value="5">Pulau Payung</option>
+            <option value="6">Pulau Tidung</option>
+            <option value="7">Pulau Panggang</option>
+            <option value="8">Pulau Pramuka</option>
+            <option value="9">Pulau Kelapa</option>
+            <option value="13">Pulau Sabira</option>
+            <option value="15">Pulau Cipir - Onrust - Bidadari - Pelabuhan Muara Angke</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="tanggal">Tanggal Berangkat</label>
+          <input id="tanggal" type="date" required />
+        </div>
+      </div>
+
+      <!-- PAYMENT & TICKET TYPE -->
+      <div class="grid">
+        <div class="field">
+          <label for="paymentType">Payment Type</label>
+          <select id="paymentType">
+            <option value="VA" selected>VA (Virtual Account)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="ticketType">Tipe Tiket</label>
+          <select id="ticketType">
+            <option value="Pergi" selected>Pergi</option>
+            <option value="Pulang Pergi">Pulang Pergi</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- SECTION 2: PASSENGERS -->
+      <div class="section-title">
+        <span>2</span> Data Penumpang
+      </div>
+
+      <div id="passengersContainer" class="passengers-container"></div>
+
+      <div class="passenger-actions">
+        <button type="button" id="addPassengerBtn" class="btn btn-secondary">
+          + Add Passenger
+        </button>
+      </div>
+
+      <!-- FOOTER ACTIONS -->
+      <div class="footer-actions">
+        <div id="status" class="status"></div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" id="resetBtn" class="btn btn-secondary">
+            Reset
+          </button>
+          <button type="button" id="cancelBtn" class="btn btn-secondary" style="display:none;">
+            Cancel
+          </button>
+          <button type="submit" id="submitBtn" class="btn btn-primary">
+            Submit &amp; Auto Book
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <pre id="result" style="display:none;"></pre>
+
+    <!-- Template untuk 1 passenger card -->
+    <template id="passengerTemplate">
+      <div class="passenger-card">
+        <div class="passenger-header">
+          <div class="passenger-title">Passenger</div>
+          <span class="badge">Penumpang</span>
+        </div>
+        <div class="grid">
+          <div class="field">
+            <label>Nama Lengkap</label>
+            <input type="text" class="passenger-name" placeholder="Nama sesuai identitas" required />
+          </div>
+          <div class="field">
+            <label>Type</label>
+            <select class="passenger-type">
+              <option value="Adult">Adult</option>
+              <option value="Child">Child</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Jenis Identitas</label>
+            <input type="text" class="passenger-identity" value="KTP" />
+          </div>
+          <div class="field">
+            <label>Nomor Identitas</label>
+            <input type="text" class="passenger-identity-number" placeholder="Nomor KTP / identitas" required />
+          </div>
+        </div>
+        <div class="passenger-actions">
+          <button type="button" class="btn btn-danger remove-passenger">Remove</button>
+        </div>
+      </div>
+    </template>
+
+    <script>
+      const passengersContainer = document.getElementById("passengersContainer");
+      const template = document.getElementById("passengerTemplate");
+      const addPassengerBtn = document.getElementById("addPassengerBtn");
+      const bookingForm = document.getElementById("bookingForm");
+      const statusEl = document.getElementById("status");
+      const resultEl = document.getElementById("result");
+      const submitBtn = document.getElementById("submitBtn");
+      const cancelBtn = document.getElementById("cancelBtn");
+      const resetBtn = document.getElementById("resetBtn");
+
+      const STORAGE_KEY_FORM = "autoBookForm";
+      const STORAGE_KEY_PASSENGERS = "autoBookPassengers";
+
+      // flag & counter untuk auto retry
+      let isRetrying = false;
+      let attemptCount = 0;
+      let retryTimeoutId = null;
+
+      // Helper: format tanggal YYYY-MM-DD -> DD-MM-YYYY
+      function formatDateToDDMMYYYY(dateStr) {
+        if (!dateStr) return "";
+        const [year, month, day] = dateStr.split("-");
+        if (!year || !month || !day) return dateStr;
+        return `${day}-${month}-${year}`;
+      }
+
+      // Helper: dapatkan tanggal besok dalam format YYYY-MM-DD (untuk input[type="date"])
+      function getTomorrowISODate() {
+        const now = new Date();
+        now.setDate(now.getDate() + 1);
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, "0");
+        const d = String(now.getDate()).padStart(2, "0");
+        return `${y}-${m}-${d}`;
+      }
+
+      // Helper: update nomor/label passenger
+      function refreshPassengerTitles() {
+        const cards = passengersContainer.querySelectorAll(".passenger-card");
+        cards.forEach((card, index) => {
+          const titleEl = card.querySelector(".passenger-title");
+          if (titleEl) {
+            titleEl.textContent = `Passenger ${index + 1}`;
+          }
+        });
+      }
+
+      // Simpan form (asal, tujuan, tanggal, payment, ticket) ke localStorage
+      function saveFormToStorage() {
+        const formData = {
+          asal: document.getElementById("asal").value,
+          tujuan: document.getElementById("tujuan").value,
+          tanggal: document.getElementById("tanggal").value,
+          paymentType: document.getElementById("paymentType").value,
+          ticketType: document.getElementById("ticketType").value,
+        };
+        try {
+          localStorage.setItem(STORAGE_KEY_FORM, JSON.stringify(formData));
+        } catch (e) {
+          console.warn("Gagal menyimpan form ke localStorage", e);
+        }
+      }
+
+      // Load form dari localStorage
+      function loadFormFromStorage() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY_FORM);
+          if (!raw) return;
+          const formData = JSON.parse(raw);
+          if (!formData || typeof formData !== "object") return;
+
+          if (formData.asal) document.getElementById("asal").value = formData.asal;
+          if (formData.tujuan) document.getElementById("tujuan").value = formData.tujuan;
+          if (formData.tanggal) document.getElementById("tanggal").value = formData.tanggal;
+          if (formData.paymentType) document.getElementById("paymentType").value = formData.paymentType;
+          if (formData.ticketType) document.getElementById("ticketType").value = formData.ticketType;
+        } catch (e) {
+          console.warn("Gagal load form dari localStorage", e);
+        }
+      }
+
+      // Simpan semua passenger ke localStorage
+      function savePassengersToStorage() {
+        const passengerCards = passengersContainer.querySelectorAll(".passenger-card");
+        const passengers = [];
+
+        passengerCards.forEach((card) => {
+          const name = card.querySelector(".passenger-name").value.trim();
+          const type = card.querySelector(".passenger-type").value || "Adult";
+          const identity = card.querySelector(".passenger-identity").value.trim() || "KTP";
+          const identityNumber = card.querySelector(".passenger-identity-number").value.trim();
+
+          if (name || identityNumber) {
+            passengers.push({
+              name,
+              type,
+              identity,
+              identity_number: identityNumber,
+            });
+          }
+        });
+
+        try {
+          localStorage.setItem(STORAGE_KEY_PASSENGERS, JSON.stringify(passengers));
+        } catch (e) {
+          console.warn("Gagal menyimpan passengers ke localStorage", e);
+        }
+      }
+
+      // Load passenger dari localStorage
+      function loadPassengersFromStorage() {
+        let loaded = false;
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY_PASSENGERS);
+          if (!raw) return loaded;
+          const passengers = JSON.parse(raw);
+          if (Array.isArray(passengers) && passengers.length > 0) {
+            passengersContainer.innerHTML = "";
+            passengers.forEach((p) => {
+              addPassenger(p, { save: false });
+            });
+            refreshPassengerTitles();
+            loaded = true;
+          }
+        } catch (e) {
+          console.warn("Gagal load passengers dari localStorage", e);
+        }
+        return loaded;
+      }
+
+      // Tambah 1 passenger card baru
+      function addPassenger(defaultValues = {}, options = { save: true }) {
+        const clone = template.content.cloneNode(true);
+        const card = clone.querySelector(".passenger-card");
+
+        if (defaultValues.name) {
+          card.querySelector(".passenger-name").value = defaultValues.name;
+        }
+        if (defaultValues.type) {
+          card.querySelector(".passenger-type").value = defaultValues.type;
+        }
+        if (defaultValues.identity) {
+          card.querySelector(".passenger-identity").value = defaultValues.identity;
+        }
+        if (defaultValues.identity_number) {
+          card.querySelector(".passenger-identity-number").value = defaultValues.identity_number;
+        }
+
+        passengersContainer.appendChild(card);
+        refreshPassengerTitles();
+
+        if (options.save !== false) {
+          savePassengersToStorage();
+        }
+      }
+
+      // Inisialisasi: load form & passengers dari localStorage
+      loadFormFromStorage();
+
+      // Kalau tanggal belum ada (tidak ada di storage), set ke besok
+      if (!document.getElementById("tanggal").value) {
+        document.getElementById("tanggal").value = getTomorrowISODate();
+      }
+
+      const hasLoadedPassengers = loadPassengersFromStorage();
+      if (!hasLoadedPassengers) {
+        addPassenger({}, { save: false });
+      }
+
+      // Event: klik Add Passenger
+      addPassengerBtn.addEventListener("click", () => {
+        addPassenger();
+      });
+
+      // Event delegation: remove passenger
+      passengersContainer.addEventListener("click", (e) => {
+        if (e.target.classList.contains("remove-passenger")) {
+          const card = e.target.closest(".passenger-card");
+          if (card) {
+            card.remove();
+            refreshPassengerTitles();
+            savePassengersToStorage();
+          }
+        }
+      });
+
+      // Auto-save passenger saat ada perubahan input
+      passengersContainer.addEventListener("input", () => {
+        savePassengersToStorage();
+      });
+
+      // Auto-save form saat ada perubahan
+      bookingForm.addEventListener("input", (e) => {
+        if (["asal", "tujuan", "tanggal", "paymentType", "ticketType"].includes(e.target.id)) {
+          saveFormToStorage();
+        }
+      });
+
+      // Disable/enable form saat auto-retry berjalan
+      function setFormDisabled(disabled) {
+        const inputs = bookingForm.querySelectorAll("input, select, button");
+        inputs.forEach((el) => {
+          // cancel & reset masih bisa dipakai
+          if (el === cancelBtn || el === resetBtn) return;
+          el.disabled = disabled;
+        });
+      }
+
+      // Fungsi utama: auto kirim request setiap detik sampai berhasil
+      async function startAutoBooking(payload) {
+        if (isRetrying) return;
+
+        isRetrying = true;
+        attemptCount = 0;
+
+        setFormDisabled(true);
+        submitBtn.textContent = "Mengirim (auto retry)...";
+        cancelBtn.style.display = "inline-flex";
+        cancelBtn.disabled = false;
+
+        async function attempt() {
+          if (!isRetrying) return;
+
+          attemptCount++;
+          statusEl.className = "status";
+          statusEl.textContent = `Percobaan #${attemptCount} mengirim ke http://localhost:3000/auto-book ...`;
+
+          try {
+            const response = await fetch("http://localhost:3000/auto-book", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(payload),
+            });
+
+            const data = await response.json().catch(() => null);
+
+            resultEl.style.display = "block";
+            resultEl.textContent = JSON.stringify(
+              {
+                requestBody: payload,
+                responseStatus: response.status,
+                responseBody: data,
+                attempt: attemptCount,
+              },
+              null,
+              2
+            );
+
+            if (response.ok) {
+              statusEl.textContent = `Request berhasil pada percobaan ke-${attemptCount}.`;
+              statusEl.className = "status success";
+              isRetrying = false;
+              if (retryTimeoutId) {
+                clearTimeout(retryTimeoutId);
+                retryTimeoutId = null;
+              }
+              setFormDisabled(false);
+              submitBtn.textContent = "Submit & Auto Book";
+              cancelBtn.style.display = "none";
+              return;
+            } else {
+              statusEl.textContent = `Percobaan #${attemptCount} gagal (status ${response.status}). Retry lagi dalam 1 detik...`;
+              statusEl.className = "status error";
+              retryTimeoutId = setTimeout(() => {
+                attempt();
+              }, 1000);
+            }
+          } catch (err) {
+            resultEl.style.display = "block";
+            resultEl.textContent = `Error percobaan #${attemptCount}: ${String(err)}`;
+            statusEl.textContent = `Error percobaan #${attemptCount}. Retry lagi dalam 1 detik...`;
+            statusEl.className = "status error";
+
+            retryTimeoutId = setTimeout(() => {
+              attempt();
+            }, 1000);
+          }
+        }
+
+        attempt();
+      }
+
+      // Tombol Cancel untuk menghentikan auto retry
+      cancelBtn.addEventListener("click", () => {
+        if (!isRetrying) return;
+
+        isRetrying = false;
+
+        if (retryTimeoutId) {
+          clearTimeout(retryTimeoutId);
+          retryTimeoutId = null;
+        }
+
+        setFormDisabled(false);
+        submitBtn.textContent = "Submit & Auto Book";
+        cancelBtn.style.display = "none";
+
+        statusEl.textContent = `Auto retry dibatalkan oleh user setelah ${attemptCount} percobaan.`;
+        statusEl.className = "status error";
+      });
+
+      // Tombol Reset untuk clear form + storage
+      resetBtn.addEventListener("click", () => {
+        // kalau lagi retry, stop dulu
+        if (isRetrying) {
+          isRetrying = false;
+          if (retryTimeoutId) {
+            clearTimeout(retryTimeoutId);
+            retryTimeoutId = null;
+          }
+        }
+
+        setFormDisabled(false);
+        submitBtn.textContent = "Submit & Auto Book";
+        cancelBtn.style.display = "none";
+
+        // clear storage
+        try {
+          localStorage.removeItem(STORAGE_KEY_FORM);
+          localStorage.removeItem(STORAGE_KEY_PASSENGERS);
+        } catch (e) {
+          console.warn("Gagal clear localStorage", e);
+        }
+
+        // reset form ke default
+        bookingForm.reset();
+        document.getElementById("asal").value = "1";
+        document.getElementById("tujuan").value = "4";
+        document.getElementById("paymentType").value = "VA";
+        document.getElementById("ticketType").value = "Pergi";
+        // set tanggal ke besok
+        document.getElementById("tanggal").value = getTomorrowISODate();
+
+        // reset penumpang
+        passengersContainer.innerHTML = "";
+        addPassenger({}, { save: false });
+
+        // clear status & result
+        resultEl.style.display = "none";
+        resultEl.textContent = "";
+        statusEl.textContent = "Form sudah direset.";
+        statusEl.className = "status";
+      });
+
+      // Handle submit form
+      bookingForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        statusEl.textContent = "";
+        statusEl.className = "status";
+        resultEl.style.display = "none";
+        resultEl.textContent = "";
+
+        const asal = parseInt(document.getElementById("asal").value, 10);
+        const tujuan = parseInt(document.getElementById("tujuan").value, 10);
+        const tanggalRaw = document.getElementById("tanggal").value;
+        const paymentType = document.getElementById("paymentType").value || "VA";
+        const ticketType = document.getElementById("ticketType").value || "Pergi";
+
+        const tanggal = formatDateToDDMMYYYY(tanggalRaw);
+
+        const passengerCards = passengersContainer.querySelectorAll(".passenger-card");
+        const passengers = [];
+
+        passengerCards.forEach((card) => {
+          const name = card.querySelector(".passenger-name").value.trim();
+          const type = card.querySelector(".passenger-type").value || "Adult";
+          const identity = card.querySelector(".passenger-identity").value.trim() || "KTP";
+          const identityNumber = card.querySelector(".passenger-identity-number").value.trim();
+
+          if (name && identityNumber) {
+            passengers.push({
+              name,
+              type,
+              identity,
+              identity_number: identityNumber,
+            });
+          }
+        });
+
+        if (passengers.length === 0) {
+          statusEl.textContent = "Minimal 1 penumpang harus diisi.";
+          statusEl.classList.add("error");
+          return;
+        }
+
+        if (!tanggal) {
+          statusEl.textContent = "Tanggal belum dipilih.";
+          statusEl.classList.add("error");
+          return;
+        }
+
+        const payload = {
+          asal,
+          tujuan,
+          tanggal,
+          payment_type: paymentType,
+          ticket_type: ticketType,
+          passengers,
+        };
+
+        // simpan terakhir sebelum kirim
+        saveFormToStorage();
+        savePassengersToStorage();
+
+        startAutoBooking(payload);
+      });
+    </script>
+  </div>
+</body>
+</html>
