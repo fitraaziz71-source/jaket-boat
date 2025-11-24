@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os" // <- TAMBAH INI
 	"strconv"
 	"time"
 
@@ -31,6 +32,47 @@ type AutoBookRequest struct {
 	PaymentType string      `json:"payment_type"` // "VA"
 	TicketType  string      `json:"ticket_type"`  // "Pergi"
 	Passengers  []Passenger `json:"passengers"`   // ticket_price diabaikan, nanti diganti
+}
+
+// ... (SEMUA STRUCT LAINNYA TETAP SAMA) ...
+
+const (
+	apiToken             = "79580|u16uKHzi7A3xdm0Jojwwxd7os01Yl5lXQJfH6btQ"
+	schedulesURL         = "https://jaketboat.bankdki.co.id/api/v1/schedules"
+	bookingURL           = "https://jaketboat.bankdki.co.id/api/v1/booking"
+	createBillingURL     = "http://118.99.71.122:8443/vadkipelabuhan-prod/v1/transaksi/createbilling"
+	updatePaymentCodeURL = "https://jaketboat.bankdki.co.id/api/v1/payment/update-code"
+	requestTimeout       = 15 * time.Second
+)
+
+func main() {
+	app := fiber.New()
+
+	// CORS masih OK, tapi karena index.html nanti diserve dari server yang sama,
+	// sebenarnya CORS jarang kepakai. Gak apa-apa dibiarkan.
+	app.Use(cors.New())
+
+	// Serve index.html di root
+	app.Get("/", func(c *fiber.Ctx) error {
+		return c.SendFile("index.html")
+	})
+
+	// Kalau nanti punya file2 static lain (JS/CSS terpisah), bisa:
+	// app.Static("/", "./")
+
+	// Endpoint utama dari HTML
+	app.Post("/auto-book", handleAutoBook)
+
+	// BACA PORT dari environment (WAJIB di Railway)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "3000" // default kalau running lokal
+	}
+
+	log.Println("Server running on :" + port)
+	if err := app.Listen(":" + port); err != nil {
+		log.Fatal(err)
+	}
 }
 
 // ===================== /schedules =====================
@@ -105,33 +147,9 @@ type BookingResult struct {
 	Booking           *BookingAPIResponse    `json:"booking,omitempty"`
 	Billing           *CreateBillingResponse `json:"billing,omitempty"`
 	UpdatePaymentCode UpdateCodeResponse     `json:"update_payment_code,omitempty"`
-
-	BookingError string `json:"booking_error,omitempty"`
-	BillingError string `json:"billing_error,omitempty"`
-	UpdateError  string `json:"update_error,omitempty"`
-}
-
-// ===================== Const =====================
-
-const (
-	apiToken             = "79580|u16uKHzi7A3xdm0Jojwwxd7os01Yl5lXQJfH6btQ"
-	schedulesURL         = "https://jaketboat.bankdki.co.id/api/v1/schedules"
-	bookingURL           = "https://jaketboat.bankdki.co.id/api/v1/booking"
-	createBillingURL     = "http://118.99.71.122:8443/vadkipelabuhan-prod/v1/transaksi/createbilling"
-	updatePaymentCodeURL = "https://jaketboat.bankdki.co.id/api/v1/payment/update-code"
-	requestTimeout       = 15 * time.Second
-)
-
-func main() {
-	app := fiber.New()
-	app.Use(cors.New())
-
-	app.Post("/auto-book", handleAutoBook)
-
-	log.Println("Server running on :3000")
-	if err := app.Listen(":3000"); err != nil {
-		log.Fatal(err)
-	}
+	BookingError      string                 `json:"booking_error,omitempty"`
+	BillingError      string                 `json:"billing_error,omitempty"`
+	UpdateError       string                 `json:"update_error,omitempty"`
 }
 
 func handleAutoBook(c *fiber.Ctx) error {

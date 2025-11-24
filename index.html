@@ -380,18 +380,21 @@
     </template>
 
     <script>
-      const passengersContainer = document.getElementById("passengersContainer");
-      const template = document.getElementById("passengerTemplate");
-      const addPassengerBtn = document.getElementById("addPassengerBtn");
-      const bookingForm = document.getElementById("bookingForm");
-      const statusEl = document.getElementById("status");
-      const resultEl = document.getElementById("result");
-      const submitBtn = document.getElementById("submitBtn");
-      const cancelBtn = document.getElementById("cancelBtn");
-      const resetBtn = document.getElementById("resetBtn");
+  const passengersContainer = document.getElementById("passengersContainer");
+  const template = document.getElementById("passengerTemplate");
+  const addPassengerBtn = document.getElementById("addPassengerBtn");
+  const bookingForm = document.getElementById("bookingForm");
+  const statusEl = document.getElementById("status");
+  const resultEl = document.getElementById("result");
+  const submitBtn = document.getElementById("submitBtn");
+  const cancelBtn = document.getElementById("cancelBtn");
+  const resetBtn = document.getElementById("resetBtn");
 
-      const STORAGE_KEY_FORM = "autoBookForm";
-      const STORAGE_KEY_PASSENGERS = "autoBookPassengers";
+  const STORAGE_KEY_FORM = "autoBookForm";
+  const STORAGE_KEY_PASSENGERS = "autoBookPassengers";
+
+      // 🆕 BASE URL API, otomatis ikut domain sekarang (lokal / Railway)
+      const API_BASE_URL = window.location.origin;
 
       // flag & counter untuk auto retry
       let isRetrying = false;
@@ -605,10 +608,9 @@
 
           attemptCount++;
           statusEl.className = "status";
-          statusEl.textContent = `Percobaan #${attemptCount} mengirim ke http://localhost:3000/auto-book ...`;
-
+          statusEl.textContent = `Percobaan #${attemptCount} mengirim ke ${API_BASE_URL}/auto-book ...`;
           try {
-            const response = await fetch("http://localhost:3000/auto-book", {
+            const response = await fetch(`${API_BASE_URL}/auto-book`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
