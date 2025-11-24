@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"net/url"
-	"os" // <- TAMBAH INI
+	"net/url" // <- TAMBAH INI
+	"os"
 	"strconv"
 	"time"
 
@@ -32,47 +32,6 @@ type AutoBookRequest struct {
 	PaymentType string      `json:"payment_type"` // "VA"
 	TicketType  string      `json:"ticket_type"`  // "Pergi"
 	Passengers  []Passenger `json:"passengers"`   // ticket_price diabaikan, nanti diganti
-}
-
-// ... (SEMUA STRUCT LAINNYA TETAP SAMA) ...
-
-const (
-	apiToken             = "79580|u16uKHzi7A3xdm0Jojwwxd7os01Yl5lXQJfH6btQ"
-	schedulesURL         = "https://jaketboat.bankdki.co.id/api/v1/schedules"
-	bookingURL           = "https://jaketboat.bankdki.co.id/api/v1/booking"
-	createBillingURL     = "http://118.99.71.122:8443/vadkipelabuhan-prod/v1/transaksi/createbilling"
-	updatePaymentCodeURL = "https://jaketboat.bankdki.co.id/api/v1/payment/update-code"
-	requestTimeout       = 15 * time.Second
-)
-
-func main() {
-	app := fiber.New()
-
-	// CORS masih OK, tapi karena index.html nanti diserve dari server yang sama,
-	// sebenarnya CORS jarang kepakai. Gak apa-apa dibiarkan.
-	app.Use(cors.New())
-
-	// Serve index.html di root
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendFile("index.html")
-	})
-
-	// Kalau nanti punya file2 static lain (JS/CSS terpisah), bisa:
-	// app.Static("/", "./")
-
-	// Endpoint utama dari HTML
-	app.Post("/auto-book", handleAutoBook)
-
-	// BACA PORT dari environment (WAJIB di Railway)
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "3000" // default kalau running lokal
-	}
-
-	log.Println("Server running on :" + port)
-	if err := app.Listen(":" + port); err != nil {
-		log.Fatal(err)
-	}
 }
 
 // ===================== /schedules =====================
@@ -310,6 +269,15 @@ func handleAutoBook(c *fiber.Ctx) error {
 	})
 }
 
+const (
+	apiToken             = "79580|u16uKHzi7A3xdm0Jojwwxd7os01Yl5lXQJfH6btQ"
+	schedulesURL         = "https://jaketboat.bankdki.co.id/api/v1/schedules"
+	bookingURL           = "https://jaketboat.bankdki.co.id/api/v1/booking"
+	createBillingURL     = "http://118.99.71.122:8443/vadkipelabuhan-prod/v1/transaksi/createbilling"
+	updatePaymentCodeURL = "https://jaketboat.bankdki.co.id/api/v1/payment/update-code"
+	requestTimeout       = 15 * time.Second
+)
+
 // ===================== Helper: /schedules =====================
 
 func getSchedules(asal, tujuan int, tanggal string) ([]ScheduleItem, *ScheduleResponse, error) {
@@ -465,4 +433,32 @@ func convertTimeFormat(raw string) (string, error) {
 		return "", err
 	}
 	return t.Format(layoutOut), nil
+}
+
+func main() {
+	app := fiber.New()
+	app.Use(cors.New())
+
+	// health check
+	app.Get("/health", func(c *fiber.Ctx) error {
+		return c.SendString("ok")
+	})
+
+	// serve index.html (pastikan file ini sejajar sama main.go)
+	app.Get("/", func(c *fiber.Ctx) error {
+		return c.SendFile("index.html")
+	})
+
+	// Endpoint utama dari HTML
+	app.Post("/auto-book", handleAutoBook)
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Println("Server running on :" + port)
+	if err := app.Listen("0.0.0.0:" + port); err != nil {
+		log.Fatal(err)
+	}
 }
