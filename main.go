@@ -112,6 +112,42 @@ type BookingResult struct {
 	UpdateError       string                 `json:"update_error,omitempty"`
 }
 
+type SimplifiedTransaction struct {
+	ID          int64  `json:"id"`
+	StatusName  string `json:"status_name"`
+	PaymentCode string `json:"payment_code"`
+	TimeToPay   string `json:"time_to_pay"`
+	TotalAmount int64  `json:"total_amount"`
+	ShipName    string `json:"ship_name"`
+}
+
+type TransactionsAPIResponse struct {
+	Success bool                `json:"success"`
+	Message string              `json:"message"`
+	Data    []TransactionDetail `json:"data"`
+}
+
+type TransactionDetail struct {
+	ID          int64     `json:"id"`
+	StatusName  string    `json:"status_name"`
+	PaymentCode string    `json:"payment_code"`
+	TimeToPay   string    `json:"time_to_pay"`
+	TotalAmount int64     `json:"total_amount"`
+	Bookings    []Booking `json:"bookings"`
+}
+
+type Booking struct {
+	Schedule Schedule `json:"schedule"`
+}
+
+type Schedule struct {
+	Ship Ship `json:"ship"`
+}
+
+type Ship struct {
+	Name string `json:"name"`
+}
+
 func handleAutoBook(c *fiber.Ctx) error {
 	var req AutoBookRequest
 
@@ -271,11 +307,13 @@ func handleAutoBook(c *fiber.Ctx) error {
 }
 
 const (
-	apiToken             = "79580|u16uKHzi7A3xdm0Jojwwxd7os01Yl5lXQJfH6btQ"
+	apiToken             = "176067|D7R2uu8LTJFN7d8lYQfoRMOY0WN6uq7DnXpkxjS6"
 	schedulesURL         = "https://jaketboat.bankdki.co.id/api/v1/schedules"
 	bookingURL           = "https://jaketboat.bankdki.co.id/api/v1/booking"
 	createBillingURL     = "http://118.99.71.122:8443/vadkipelabuhan-prod/v1/transaksi/createbilling"
 	updatePaymentCodeURL = "https://jaketboat.bankdki.co.id/api/v1/payment/update-code"
+	activeTransactionURL = "https://jaketboat.bankdki.co.id/api/v1/payment/transactions?status=aktif"
+	cancelPaymentURL     = "https://jaketboat.bankdki.co.id/api/v1/payment/cancel"
 	requestTimeout       = 15 * time.Second
 )
 
@@ -304,6 +342,7 @@ func getSchedules(asal, tujuan int, tanggal string) ([]ScheduleItem, *ScheduleRe
 
 	req.Header.Set("Authorization", "Bearer "+apiToken)
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", "curl/7.81.0")
 
 	client := &http.Client{Timeout: requestTimeout}
 	resp, err := client.Do(req)
@@ -353,6 +392,7 @@ func doBooking(bookingReq ExternalBookingRequest) (BookingAPIResponse, error) {
 
 	req.Header.Set("Authorization", "Bearer "+apiToken)
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", "curl/7.81.0")
 
 	client := &http.Client{Timeout: requestTimeout}
 	resp, err := client.Do(req)
@@ -386,6 +426,7 @@ func createBilling(amount int) (CreateBillingResponse, error) {
 
 	req.Header.Set("Authorization", "Bearer "+apiToken)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("User-Agent", "curl/7.81.0")
 
 	client := &http.Client{Timeout: requestTimeout}
 	resp, err := client.Do(req)
@@ -399,6 +440,65 @@ func createBilling(amount int) (CreateBillingResponse, error) {
 	}
 
 	return billingResp, nil
+}
+
+func getActiveTransactionsHandler(c *fiber.Ctx) error {
+	client := &http.Client{
+		Timeout: requestTimeout,
+	}
+
+	req, err := http.NewRequest(http.MethodGet, activeTransactionURL, nil)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	req.Header.Set("Authorization", "Bearer "+apiToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadGateway, err.Error())
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadGateway, err.Error())
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		// forward error dari upstream apa adanya
+		return c.Status(resp.StatusCode).Send(body)
+	}
+
+	var apiResp TransactionsAPIResponse
+	if err := json.Unmarshal(body, &apiResp); err != nil {
+		return fiber.NewError(fiber.StatusBadGateway, err.Error())
+	}
+
+	// Mapping ke bentuk sederhana
+	simplified := make([]SimplifiedTransaction, 0, len(apiResp.Data))
+	for _, t := range apiResp.Data {
+		shipName := ""
+		if len(t.Bookings) > 0 {
+			shipName = t.Bookings[0].Schedule.Ship.Name
+		}
+
+		simplified = append(simplified, SimplifiedTransaction{
+			ID:          t.ID,
+			StatusName:  t.StatusName,
+			PaymentCode: t.PaymentCode,
+			TimeToPay:   t.TimeToPay,
+			TotalAmount: t.TotalAmount,
+			ShipName:    shipName,
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": apiResp.Success,
+		"message": apiResp.Message,
+		"data":    simplified,
+	})
 }
 
 // ===================== Helper: /payment/update-code =====================
@@ -418,6 +518,7 @@ func updatePaymentCode(updateReq UpdateCodeRequest) (UpdateCodeResponse, error) 
 
 	req.Header.Set("Authorization", "Bearer "+apiToken)
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", "curl/7.81.0")
 
 	client := &http.Client{Timeout: requestTimeout}
 	resp, err := client.Do(req)
@@ -431,6 +532,46 @@ func updatePaymentCode(updateReq UpdateCodeRequest) (UpdateCodeResponse, error) 
 	}
 
 	return updateResp, nil
+}
+
+func cancelTransactionHandler(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "id is required")
+	}
+
+	client := &http.Client{
+		Timeout: requestTimeout,
+	}
+
+	url := cancelPaymentURL + "/" + id
+	req, err := http.NewRequest(http.MethodPost, url, nil)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	req.Header.Set("Authorization", "Bearer "+apiToken)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", "curl/7.81.0")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadGateway, err.Error())
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadGateway, err.Error())
+	}
+
+	return c.
+		Status(resp.StatusCode).
+		Type("json").
+		Send(body)
+
+	// forward status code + body dari API jaketboat
+	// return c.Status(resp.StatusCode).Send(body)
 }
 
 // ===================== Helper: format waktu =====================
@@ -463,6 +604,8 @@ func main() {
 
 	// Endpoint utama dari HTML
 	app.Post("/auto-book", handleAutoBook)
+	app.Get("/transactions/active", getActiveTransactionsHandler)
+	app.Post("/transactions/:id/cancel", cancelTransactionHandler)
 
 	port := os.Getenv("PORT")
 	if port == "" {

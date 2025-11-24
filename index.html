@@ -20,7 +20,7 @@
 
     .app {
       width: 100%;
-      max-width: 960px;
+      max-width: 1100px;
       background: #ffffff;
       border-radius: 16px;
       box-shadow: 0 15px 40px rgba(15, 23, 42, 0.12);
@@ -229,6 +229,129 @@
       word-break: break-word;
     }
 
+    /* Transactions section */
+    .transactions-wrapper {
+      margin-top: 32px;
+      border-top: 1px solid #e5e7eb;
+      padding-top: 20px;
+    }
+
+    .transactions-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .transactions-title {
+      font-size: 18px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .transactions-title span {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-weight: 600;
+    }
+
+    .transactions-status {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 8px;
+    }
+
+    .transactions-status.error {
+      color: #b91c1c;
+    }
+
+    .transactions-status.success {
+      color: #15803d;
+    }
+
+    .transactions-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .transaction-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: stretch;
+      gap: 10px;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      padding: 10px 12px;
+      background: #f9fafb;
+    }
+
+    .transaction-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .transaction-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .transaction-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 4px;
+      font-size: 12px;
+    }
+
+    .pill {
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .pill-status {
+      background: #ecfdf3;
+      color: #166534;
+    }
+
+    .pill-time {
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    .transaction-info-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      font-size: 12px;
+      color: #4b5563;
+    }
+
+    .transaction-info-row code {
+      font-size: 12px;
+      padding: 2px 4px;
+      border-radius: 6px;
+      background: #111827;
+      color: #e5e7eb;
+    }
+
+    .transaction-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      min-width: 110px;
+    }
+
     @media (max-width: 640px) {
       .app {
         padding: 16px 14px 22px;
@@ -240,6 +363,13 @@
       .footer-actions .btn {
         width: 100%;
       }
+      .transaction-card {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .transaction-actions {
+        justify-content: flex-start;
+      }
     }
   </style>
 </head>
@@ -247,7 +377,7 @@
   <div class="app">
     <h1>Auto Booking Tiket</h1>
     <p class="subtitle">
-      Pembelian tiket dapat di lakukan mulai pukul 10.00 WIB - 23.59 WIB.
+      Form ini akan mulai bekerja jam 10.00 WIB.
     </p>
 
     <form id="bookingForm">
@@ -293,6 +423,7 @@
         <div class="field">
           <label for="tanggal">Tanggal Berangkat</label>
           <input id="tanggal" type="date" required />
+          <small>Default: besok, format ke API: DD-MM-YYYY (otomatis di-convert)</small>
         </div>
       </div>
 
@@ -345,6 +476,23 @@
 
     <pre id="result" style="display:none;"></pre>
 
+    <!-- TRANSACTIONS SECTION -->
+    <div class="transactions-wrapper">
+      <div class="transactions-header">
+        <div class="transactions-title">
+          Transaksi Aktif
+          <span>List transaction & cancel</span>
+        </div>
+        <button type="button" id="refreshTransactionsBtn" class="btn btn-secondary">
+          Refresh
+        </button>
+      </div>
+      <div id="transactionsStatus" class="transactions-status"></div>
+      <div id="transactionsContainer" class="transactions-container">
+        <!-- cards transaksi akan diisi via JS -->
+      </div>
+    </div>
+
     <!-- Template untuk 1 passenger card -->
     <template id="passengerTemplate">
       <div class="passenger-card">
@@ -380,21 +528,22 @@
     </template>
 
     <script>
-  const passengersContainer = document.getElementById("passengersContainer");
-  const template = document.getElementById("passengerTemplate");
-  const addPassengerBtn = document.getElementById("addPassengerBtn");
-  const bookingForm = document.getElementById("bookingForm");
-  const statusEl = document.getElementById("status");
-  const resultEl = document.getElementById("result");
-  const submitBtn = document.getElementById("submitBtn");
-  const cancelBtn = document.getElementById("cancelBtn");
-  const resetBtn = document.getElementById("resetBtn");
+      const passengersContainer = document.getElementById("passengersContainer");
+      const template = document.getElementById("passengerTemplate");
+      const addPassengerBtn = document.getElementById("addPassengerBtn");
+      const bookingForm = document.getElementById("bookingForm");
+      const statusEl = document.getElementById("status");
+      const resultEl = document.getElementById("result");
+      const submitBtn = document.getElementById("submitBtn");
+      const cancelBtn = document.getElementById("cancelBtn");
+      const resetBtn = document.getElementById("resetBtn");
 
-  const STORAGE_KEY_FORM = "autoBookForm";
-  const STORAGE_KEY_PASSENGERS = "autoBookPassengers";
+      const transactionsContainer = document.getElementById("transactionsContainer");
+      const transactionsStatusEl = document.getElementById("transactionsStatus");
+      const refreshTransactionsBtn = document.getElementById("refreshTransactionsBtn");
 
-      // 🆕 BASE URL API, otomatis ikut domain sekarang (lokal / Railway)
-      const API_BASE_URL = window.location.origin;
+      const STORAGE_KEY_FORM = "autoBookForm";
+      const STORAGE_KEY_PASSENGERS = "autoBookPassengers";
 
       // flag & counter untuk auto retry
       let isRetrying = false;
@@ -409,7 +558,7 @@
         return `${day}-${month}-${year}`;
       }
 
-      // Helper: dapatkan tanggal besok dalam format YYYY-MM-DD (untuk input[type="date"])
+      // Helper: dapatkan tanggal besok dalam format YYYY-MM-DD
       function getTomorrowISODate() {
         const now = new Date();
         now.setDate(now.getDate() + 1);
@@ -417,6 +566,12 @@
         const m = String(now.getMonth() + 1).padStart(2, "0");
         const d = String(now.getDate()).padStart(2, "0");
         return `${y}-${m}-${d}`;
+      }
+
+      // Helper: format rupiah sederhana
+      function formatRupiah(amount) {
+        if (typeof amount !== "number") amount = Number(amount) || 0;
+        return "Rp " + amount.toLocaleString("id-ID");
       }
 
       // Helper: update nomor/label passenger
@@ -430,7 +585,7 @@
         });
       }
 
-      // Simpan form (asal, tujuan, tanggal, payment, ticket) ke localStorage
+      // Simpan form ke localStorage
       function saveFormToStorage() {
         const formData = {
           asal: document.getElementById("asal").value,
@@ -539,14 +694,11 @@
         }
       }
 
-      // Inisialisasi: load form & passengers dari localStorage
+      // Inisialisasi form & passengers
       loadFormFromStorage();
-
-      // Kalau tanggal belum ada (tidak ada di storage), set ke besok
       if (!document.getElementById("tanggal").value) {
         document.getElementById("tanggal").value = getTomorrowISODate();
       }
-
       const hasLoadedPassengers = loadPassengersFromStorage();
       if (!hasLoadedPassengers) {
         addPassenger({}, { save: false });
@@ -608,9 +760,10 @@
 
           attemptCount++;
           statusEl.className = "status";
-          statusEl.textContent = `Percobaan #${attemptCount} mengirim ke ${API_BASE_URL}/auto-book ...`;
+          statusEl.textContent = `Percobaan #${attemptCount} mengirim ke http://localhost:8080/auto-book ...`;
+
           try {
-            const response = await fetch(`${API_BASE_URL}/auto-book`, {
+            const response = await fetch("http://localhost:8080/auto-book", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -687,7 +840,6 @@
 
       // Tombol Reset untuk clear form + storage
       resetBtn.addEventListener("click", () => {
-        // kalau lagi retry, stop dulu
         if (isRetrying) {
           isRetrying = false;
           if (retryTimeoutId) {
@@ -700,7 +852,6 @@
         submitBtn.textContent = "Submit & Auto Book";
         cancelBtn.style.display = "none";
 
-        // clear storage
         try {
           localStorage.removeItem(STORAGE_KEY_FORM);
           localStorage.removeItem(STORAGE_KEY_PASSENGERS);
@@ -708,20 +859,16 @@
           console.warn("Gagal clear localStorage", e);
         }
 
-        // reset form ke default
         bookingForm.reset();
         document.getElementById("asal").value = "1";
         document.getElementById("tujuan").value = "4";
         document.getElementById("paymentType").value = "VA";
         document.getElementById("ticketType").value = "Pergi";
-        // set tanggal ke besok
         document.getElementById("tanggal").value = getTomorrowISODate();
 
-        // reset penumpang
         passengersContainer.innerHTML = "";
         addPassenger({}, { save: false });
 
-        // clear status & result
         resultEl.style.display = "none";
         resultEl.textContent = "";
         statusEl.textContent = "Form sudah direset.";
@@ -784,12 +931,159 @@
           passengers,
         };
 
-        // simpan terakhir sebelum kirim
         saveFormToStorage();
         savePassengersToStorage();
 
         startAutoBooking(payload);
       });
+
+      // =========================
+      //  TRANSACTIONS FUNCTIONS
+      // =========================
+
+      async function loadTransactions() {
+        transactionsStatusEl.textContent = "Memuat transaksi aktif...";
+        transactionsStatusEl.className = "transactions-status";
+        transactionsContainer.innerHTML = "";
+
+        try {
+          const resp = await fetch("http://localhost:8080/transactions/active");
+          const json = await resp.json().catch(() => null);
+
+          if (!resp.ok) {
+            transactionsStatusEl.textContent = `Gagal load transaksi (status ${resp.status}).`;
+            transactionsStatusEl.className = "transactions-status error";
+            return;
+          }
+
+          const data = (json && json.data) || [];
+          if (!Array.isArray(data) || data.length === 0) {
+            transactionsStatusEl.textContent = "Tidak ada transaksi aktif.";
+            transactionsStatusEl.className = "transactions-status";
+            transactionsContainer.innerHTML = "";
+            return;
+          }
+
+          transactionsStatusEl.textContent = `Menampilkan ${data.length} transaksi aktif.`;
+          transactionsStatusEl.className = "transactions-status success";
+
+          data.forEach((tx) => {
+            const card = document.createElement("div");
+            card.className = "transaction-card";
+            card.dataset.id = tx.id;
+
+            card.innerHTML = `
+              <div class="transaction-main">
+                <div class="transaction-title">#${tx.id} &mdash; ${tx.ship_name || "-"}</div>
+                <div class="transaction-meta">
+                  <span class="pill pill-status">${tx.status_name || "-"}</span>
+                  <span class="pill pill-time">Bayar sebelum ${tx.time_to_pay || "-"}</span>
+                </div>
+                <div class="transaction-info-row">
+                  <span>Payment Code: <code>${tx.payment_code || "-"}</code></span>
+                  <span>Total: ${formatRupiah(tx.total_amount || 0)}</span>
+                </div>
+              </div>
+              <div class="transaction-actions">
+                <button
+                  type="button"
+                  class="btn btn-danger btn-cancel-transaction"
+                  data-id="${tx.id}"
+                >
+                  Cancel
+                </button>
+              </div>
+            `;
+
+            transactionsContainer.appendChild(card);
+          });
+        } catch (err) {
+          console.error(err);
+          transactionsStatusEl.textContent = "Terjadi error saat mengambil transaksi (cek server / CORS).";
+          transactionsStatusEl.className = "transactions-status error";
+        }
+      }
+
+      async function cancelTransaction(id, buttonEl) {
+        if (!id) return;
+
+        const ok = window.confirm(`Yakin ingin cancel transaksi #${id}?`);
+        if (!ok) return;
+
+        const originalText = buttonEl.textContent;
+        buttonEl.disabled = true;
+        buttonEl.textContent = "Cancelling...";
+
+        try {
+          const resp = await fetch(`http://localhost:8080/transactions/${id}/cancel`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+
+          const json = await resp.json().catch(() => null);
+
+          // TAMPILKAN SELALU response cancel (sukses / gagal) di <pre id="result">
+          resultEl.style.display = "block";
+          resultEl.textContent = JSON.stringify(
+            {
+              action: "cancel_transaction",
+              id,
+              responseStatus: resp.status,
+              responseBody: json,
+            },
+            null,
+            2
+          );
+
+          // Handling kalau gagal
+          if (!resp.ok || !json || json.success !== true) {
+            transactionsStatusEl.textContent =
+              json && json.message
+                ? `Gagal cancel: ${json.message}`
+                : `Gagal cancel (status ${resp.status}).`;
+            transactionsStatusEl.className = "transactions-status error";
+            buttonEl.disabled = false;
+            buttonEl.textContent = originalText;
+            return;
+          }
+
+          // Kalau sukses
+          transactionsStatusEl.textContent =
+            json && json.message
+              ? `Transaksi #${id} berhasil dicancel: ${json.message}`
+              : `Transaksi #${id} berhasil dicancel.`;
+          transactionsStatusEl.className = "transactions-status success";
+
+          // Refresh list transaksi
+          await loadTransactions();
+        } catch (err) {
+          console.error(err);
+          resultEl.style.display = "block";
+          resultEl.textContent = `Error cancel transaksi #${id}: ${String(err)}`;
+          transactionsStatusEl.textContent = "Error saat cancel transaksi (cek server / CORS).";
+          transactionsStatusEl.className = "transactions-status error";
+          buttonEl.disabled = false;
+          buttonEl.textContent = originalText;
+        }
+      }
+
+      // Event: klik Refresh transactions
+      refreshTransactionsBtn.addEventListener("click", () => {
+        loadTransactions();
+      });
+
+      // Event delegation: klik cancel di transaksi
+      transactionsContainer.addEventListener("click", (e) => {
+        const btn = e.target.closest(".btn-cancel-transaction");
+        if (!btn) return;
+        const id = btn.dataset.id;
+        cancelTransaction(id, btn);
+      });
+
+      // Load transaksi pertama kali saat halaman dibuka
+      loadTransactions();
     </script>
   </div>
 </body>
