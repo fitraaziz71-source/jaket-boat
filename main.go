@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/url" // <- TAMBAH INI
@@ -125,7 +126,7 @@ func handleAutoBook(c *fiber.Ctx) error {
 	// 1. Ambil schedules
 	schedules, _, err := getSchedules(req.Asal, req.Tujuan, req.Tanggal)
 	if err != nil {
-		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"success": false,
 			"message": "failed to get schedules",
 			"error":   err.Error(),
@@ -310,6 +311,17 @@ func getSchedules(asal, tujuan int, tanggal string) ([]ScheduleItem, *ScheduleRe
 		return nil, nil, err
 	}
 	defer resp.Body.Close()
+
+	// 🔴 CEK DULU STATUS CODE
+	if resp.StatusCode != http.StatusOK {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		bodyStr := string(bodyBytes)
+
+		// log buat dilihat di Railway
+		log.Printf("getSchedules ERROR status=%d body=%s\n", resp.StatusCode, bodyStr)
+
+		return nil, nil, fmt.Errorf("schedules API returned status %d, body: %s", resp.StatusCode, bodyStr)
+	}
 
 	var schedResp ScheduleResponse
 	if err := json.NewDecoder(resp.Body).Decode(&schedResp); err != nil {
