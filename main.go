@@ -683,6 +683,8 @@ func main() {
 	app := fiber.New()
 	app.Use(cors.New())
 
+	app.Static("/", "./") // Menggunakan root direktori untuk melayani file statik
+
 	// health check
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.SendString("ok")
@@ -690,13 +692,13 @@ func main() {
 
 	// serve index.html (pastikan file ini sejajar sama main.go)
 	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendFile("index.html")
+		return c.SendFile("./index.html")
 	})
 	app.Get("/jaketboat", func(c *fiber.Ctx) error {
-		return c.SendFile("jaketboat.html")
+		return c.SendFile("./jaketboat.html")
 	})
 	app.Get("/login", func(c *fiber.Ctx) error {
-		return c.SendFile("login.html")
+		return c.SendFile("./login.html")
 	})
 
 	app.Use("/auto-book", authorize)
