@@ -148,6 +148,88 @@ type Ship struct {
 	Name string `json:"name"`
 }
 
+// ===================== Login API =====================
+
+type LoginRequest struct {
+	Phone    string `json:"phone"`
+	Password string `json:"password"`
+}
+
+type LoginAPIRequest struct {
+	Phone      string `json:"phone"`
+	Password   string `json:"password"`
+	AppVersion string `json:"app_version"`
+	DeviceName string `json:"device_name"`
+}
+
+type LoginResponse struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+	Data    struct {
+		Token string `json:"token"`
+	} `json:"data"`
+}
+
+// Function to handle login request
+func loginHandler(c *fiber.Ctx) error {
+	var req LoginRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"message": "invalid request body",
+			"error":   err.Error(),
+		})
+	}
+
+	payload := LoginAPIRequest{
+		Phone:      req.Phone,
+		Password:   req.Password,
+		AppVersion: "1.5.5",
+		DeviceName: "Xiaomi",
+	}
+
+	jsonBody, _ := json.Marshal(payload)
+
+	httpReq, err := http.NewRequest(http.MethodPost,
+		loginURL,
+		bytes.NewBuffer(jsonBody),
+	)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	httpReq.Header.Set("Content-Type", "application/json")
+	httpReq.Header.Set("User-Agent", "PostmanRuntime/7.49.1")
+
+	client := &http.Client{Timeout: requestTimeout}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadGateway, err.Error())
+	}
+	defer resp.Body.Close()
+
+	bodyBytes, _ := io.ReadAll(resp.Body)
+
+	if resp.StatusCode != http.StatusOK {
+		return c.Status(resp.StatusCode).Send(bodyBytes)
+	}
+
+	var loginResp LoginResponse
+	if err := json.Unmarshal(bodyBytes, &loginResp); err != nil {
+		return fiber.NewError(fiber.StatusBadGateway, err.Error())
+	}
+
+	if !loginResp.Success {
+		return c.Status(fiber.StatusUnauthorized).JSON(loginResp)
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "login success",
+		"token":   loginResp.Data.Token, // Respond with the token to the user
+	})
+}
+
 func handleAutoBook(c *fiber.Ctx) error {
 	var req AutoBookRequest
 
@@ -160,7 +242,7 @@ func handleAutoBook(c *fiber.Ctx) error {
 	}
 
 	// 1. Ambil schedules
-	schedules, _, err := getSchedules(req.Asal, req.Tujuan, req.Tanggal)
+	schedules, _, err := getSchedules(req.Asal, req.Tujuan, req.Tanggal, c)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"success": false,
@@ -214,7 +296,7 @@ func handleAutoBook(c *fiber.Ctx) error {
 			},
 		}
 
-		bookingResp, err := doBooking(bookingReq)
+		bookingResp, err := doBooking(bookingReq, c)
 		if err != nil {
 			log.Printf("Booking error for schedule %d: %v\n", s.ID, err)
 			res.BookingError = err.Error()
@@ -237,7 +319,7 @@ func handleAutoBook(c *fiber.Ctx) error {
 		log.Printf("Schedule %d booked, payment_id=%d\n", s.ID, paymentID)
 
 		amount := s.TotalPrice*len(req.Passengers) + s.BiayaAdmin
-		billingResp, err := createBilling(amount)
+		billingResp, err := createBilling(amount, c)
 
 		// 2c. Create billing ke VA server
 		if err != nil {
@@ -277,7 +359,7 @@ func handleAutoBook(c *fiber.Ctx) error {
 			PaymentCode: vaNumber,
 			TimeToPay:   timeToPay,
 			InvoiceID:   invoiceID,
-		})
+		}, c)
 		if err != nil {
 			log.Printf("Update payment code error for schedule %d: %v\n", s.ID, err)
 			res.UpdateError = err.Error()
@@ -307,19 +389,21 @@ func handleAutoBook(c *fiber.Ctx) error {
 }
 
 const (
-	apiToken             = "176067|D7R2uu8LTJFN7d8lYQfoRMOY0WN6uq7DnXpkxjS6"
 	schedulesURL         = "https://jaketboat.bankdki.co.id/api/v1/schedules"
 	bookingURL           = "https://jaketboat.bankdki.co.id/api/v1/booking"
 	createBillingURL     = "http://118.99.71.122:8443/vadkipelabuhan-prod/v1/transaksi/createbilling"
 	updatePaymentCodeURL = "https://jaketboat.bankdki.co.id/api/v1/payment/update-code"
 	activeTransactionURL = "https://jaketboat.bankdki.co.id/api/v1/payment/transactions?status=aktif"
 	cancelPaymentURL     = "https://jaketboat.bankdki.co.id/api/v1/payment/cancel"
+	loginURL             = "https://jaketboat.bankdki.co.id/api/v1/login"
 	requestTimeout       = 15 * time.Second
 )
 
 // ===================== Helper: /schedules =====================
+func getSchedules(asal, tujuan int, tanggal string, c *fiber.Ctx) ([]ScheduleItem, *ScheduleResponse, error) {
+	// Ambil token dari context
+	token := c.Get("Authorization")
 
-func getSchedules(asal, tujuan int, tanggal string) ([]ScheduleItem, *ScheduleResponse, error) {
 	bodyStruct := struct {
 		Asal    int    `json:"asal"`
 		Tujuan  int    `json:"tujuan"`
@@ -340,9 +424,10 @@ func getSchedules(asal, tujuan int, tanggal string) ([]ScheduleItem, *ScheduleRe
 		return nil, nil, err
 	}
 
-	req.Header.Set("Authorization", "Bearer "+apiToken)
+	// Set Authorization header with the dynamic token
+	req.Header.Set("Authorization", token)
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "curl/7.81.0")
+	req.Header.Set("User-Agent", "PostmanRuntime/7.49.1")
 
 	client := &http.Client{Timeout: requestTimeout}
 	resp, err := client.Do(req)
@@ -351,12 +436,11 @@ func getSchedules(asal, tujuan int, tanggal string) ([]ScheduleItem, *ScheduleRe
 	}
 	defer resp.Body.Close()
 
-	// 🔴 CEK DULU STATUS CODE
+	// Cek status code
 	if resp.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(resp.Body)
 		bodyStr := string(bodyBytes)
 
-		// log buat dilihat di Railway
 		log.Printf("getSchedules ERROR status=%d body=%s\n", resp.StatusCode, bodyStr)
 
 		return nil, nil, fmt.Errorf("schedules API returned status %d, body: %s", resp.StatusCode, bodyStr)
@@ -368,8 +452,7 @@ func getSchedules(asal, tujuan int, tanggal string) ([]ScheduleItem, *ScheduleRe
 	}
 
 	for _, d := range schedResp.Data {
-		log.Printf("Schedule ID: %d | total_price: %d | tiket_tersedia: %d\n",
-			d.ID, d.TotalPrice, d.TiketTersedia)
+		log.Printf("Schedule ID: %d | total_price: %d | tiket_tersedia: %d\n", d.ID, d.TotalPrice, d.TiketTersedia)
 	}
 
 	return schedResp.Data, &schedResp, nil
@@ -377,8 +460,10 @@ func getSchedules(asal, tujuan int, tanggal string) ([]ScheduleItem, *ScheduleRe
 
 // ===================== Helper: /booking =====================
 
-func doBooking(bookingReq ExternalBookingRequest) (BookingAPIResponse, error) {
+func doBooking(bookingReq ExternalBookingRequest, c *fiber.Ctx) (BookingAPIResponse, error) {
 	var bookingResp BookingAPIResponse
+
+	token := c.Get("Authorization")
 
 	jsonBody, err := json.Marshal(bookingReq)
 	if err != nil {
@@ -390,9 +475,10 @@ func doBooking(bookingReq ExternalBookingRequest) (BookingAPIResponse, error) {
 		return bookingResp, err
 	}
 
-	req.Header.Set("Authorization", "Bearer "+apiToken)
+	// Set Authorization header with the dynamic token
+	req.Header.Set("Authorization", token)
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "curl/7.81.0")
+	req.Header.Set("User-Agent", "PostmanRuntime/7.49.1")
 
 	client := &http.Client{Timeout: requestTimeout}
 	resp, err := client.Do(req)
@@ -410,23 +496,25 @@ func doBooking(bookingReq ExternalBookingRequest) (BookingAPIResponse, error) {
 
 // ===================== Helper: /createbilling =====================
 
-func createBilling(amount int) (CreateBillingResponse, error) {
+func createBilling(amount int, c *fiber.Ctx) (CreateBillingResponse, error) {
+	// Ambil token dari context
+	token := c.Get("Authorization")
 	var billingResp CreateBillingResponse
 
 	form := url.Values{}
 	form.Set("amount", strconv.Itoa(amount))
 	form.Set("merchant_id", "PTPATTRA001")
 	form.Set("notif_url", "https://jaketboat.bankdki.co.id/api/v1/payment/payout/va")
-	form.Set("expired_param", "120") // sesuai contoh kamu
+	form.Set("expired_param", "820") // sesuai contoh kamu
 
 	req, err := http.NewRequest(http.MethodPost, createBillingURL, bytes.NewBufferString(form.Encode()))
 	if err != nil {
 		return billingResp, err
 	}
 
-	req.Header.Set("Authorization", "Bearer "+apiToken)
+	req.Header.Set("Authorization", token)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("User-Agent", "curl/7.81.0")
+	req.Header.Set("User-Agent", "PostmanRuntime/7.49.1")
 
 	client := &http.Client{Timeout: requestTimeout}
 	resp, err := client.Do(req)
@@ -452,7 +540,9 @@ func getActiveTransactionsHandler(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	req.Header.Set("Authorization", "Bearer "+apiToken)
+	token := c.Get("Authorization")
+
+	req.Header.Set("Authorization", token)
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := client.Do(req)
@@ -503,7 +593,7 @@ func getActiveTransactionsHandler(c *fiber.Ctx) error {
 
 // ===================== Helper: /payment/update-code =====================
 
-func updatePaymentCode(updateReq UpdateCodeRequest) (UpdateCodeResponse, error) {
+func updatePaymentCode(updateReq UpdateCodeRequest, c *fiber.Ctx) (UpdateCodeResponse, error) {
 	var updateResp UpdateCodeResponse
 
 	jsonBody, err := json.Marshal(updateReq)
@@ -516,9 +606,10 @@ func updatePaymentCode(updateReq UpdateCodeRequest) (UpdateCodeResponse, error) 
 		return nil, err
 	}
 
-	req.Header.Set("Authorization", "Bearer "+apiToken)
+	token := c.Get("Authorization")
+	req.Header.Set("Authorization", token)
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "curl/7.81.0")
+	req.Header.Set("User-Agent", "PostmanRuntime/7.49.1")
 
 	client := &http.Client{Timeout: requestTimeout}
 	resp, err := client.Do(req)
@@ -549,10 +640,10 @@ func cancelTransactionHandler(c *fiber.Ctx) error {
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
-
-	req.Header.Set("Authorization", "Bearer "+apiToken)
+	token := c.Get("Authorization")
+	req.Header.Set("Authorization", token)
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "curl/7.81.0")
+	req.Header.Set("User-Agent", "PostmanRuntime/7.49.1")
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -601,8 +692,18 @@ func main() {
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendFile("index.html")
 	})
+	app.Get("/jaketboat", func(c *fiber.Ctx) error {
+		return c.SendFile("jaketboat.html")
+	})
+	app.Get("/login", func(c *fiber.Ctx) error {
+		return c.SendFile("login.html")
+	})
 
-	// Endpoint utama dari HTML
+	app.Use("/auto-book", authorize)
+	app.Use("/transactions/active", authorize)
+	app.Use("/transactions/:id/cancel", authorize)
+
+	app.Post("/login", loginHandler)
 	app.Post("/auto-book", handleAutoBook)
 	app.Get("/transactions/active", getActiveTransactionsHandler)
 	app.Post("/transactions/:id/cancel", cancelTransactionHandler)
@@ -616,4 +717,39 @@ func main() {
 	if err := app.Listen("0.0.0.0:" + port); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func authorize(c *fiber.Ctx) error {
+	// Ambil header Authorization dari permintaan
+	authHeader := c.Get("Authorization")
+
+	if authHeader == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"success": false,
+			"message": "Authorization header is required",
+		})
+	}
+
+	// Ambil token dari Authorization header
+	// Biasanya format: "Bearer <token>"
+	if len(authHeader) < 7 || authHeader[:7] != "Bearer " {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"success": false,
+			"message": "Invalid Authorization format",
+		})
+	}
+
+	// Ambil token
+	token := authHeader[7:]
+
+	// Verifikasi token jika perlu (misalnya token yang valid)
+	if token == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"success": false,
+			"message": "Invalid token",
+		})
+	}
+
+	// Lanjutkan ke handler berikutnya
+	return c.Next()
 }

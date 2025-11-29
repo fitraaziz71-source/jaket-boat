@@ -1,1090 +1,495 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <title>Auto Book Ticket</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    :root {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #f3f4f6;
-      color: #111827;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Booking Tiket - Pesan Tiket Mudah & Cepat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    body {
-      margin: 0;
-      padding: 24px;
-      display: flex;
-      justify-content: center;
-    }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
 
-    .app {
-      width: 100%;
-      max-width: 1100px;
-      background: #ffffff;
-      border-radius: 16px;
-      box-shadow: 0 15px 40px rgba(15, 23, 42, 0.12);
-      padding: 24px 24px 32px;
-    }
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
 
-    h1 {
-      margin: 0 0 4px;
-      font-size: 24px;
-      letter-spacing: 0.02em;
-    }
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-    .subtitle {
-      margin: 0 0 20px;
-      font-size: 14px;
-      color: #6b7280;
-    }
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 16px;
-    }
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
 
-    .field {
-      display: flex;
-      flex-direction: column;
-      margin-bottom: 14px;
-    }
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
 
-    .field label {
-      font-size: 13px;
-      font-weight: 600;
-      color: #374151;
-      margin-bottom: 4px;
-    }
+        .nav-links a:hover {
+            color: #667eea;
+        }
 
-    .field small {
-      font-size: 11px;
-      color: #9ca3af;
-    }
+        .btn-login {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.7rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
 
-    input[type="text"],
-    input[type="date"],
-    input[type="number"],
-    select {
-      border-radius: 10px;
-      border: 1px solid #d1d5db;
-      padding: 8px 10px;
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.15s, box-shadow 0.15s;
-    }
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
 
-    input:focus,
-    select:focus {
-      border-color: #2563eb;
-      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.2);
-    }
+        .hero {
+            margin-top: 80px;
+            padding: 4rem 2rem;
+            text-align: center;
+            color: white;
+        }
 
-    .section-title {
-      margin: 18px 0 8px;
-      font-size: 16px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
 
-    .section-title span {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 24px;
-      height: 24px;
-      border-radius: 999px;
-      background: #eff6ff;
-      color: #1d4ed8;
-      font-size: 12px;
-      font-weight: 700;
-    }
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+        }
 
-    .passengers-container {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-top: 8px;
-    }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
 
-    .passenger-card {
-      border-radius: 12px;
-      border: 1px solid #e5e7eb;
-      padding: 12px 12px 10px;
-      background: #f9fafb;
-      position: relative;
-    }
+        .about-section {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
 
-    .passenger-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
-    }
+        .about-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: #667eea;
+            text-align: center;
+        }
 
-    .passenger-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: #111827;
-    }
+        .about-content {
+            font-size: 1.1rem;
+            color: #555;
+            line-height: 1.8;
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
 
-    .badge {
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: #e5f2ff;
-      color: #1d4ed8;
-      font-weight: 600;
-    }
+        .services {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
 
-    .passenger-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 6px;
-    }
+        .service-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
 
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 8px 14px;
-      border-radius: 999px;
-      border: none;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: transform 0.05s ease, box-shadow 0.1s ease, background 0.15s;
-    }
+        .service-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+        
+         .service-card.coming-soon {
+            opacity: 0.7;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
 
-    .btn-primary {
-      background: linear-gradient(135deg, #2563eb, #1d4ed8);
-      color: white;
-      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
-    }
+        .service-card.coming-soon:hover {
+            transform: translateY(-5px);
+        }
 
-    .btn-secondary {
-      background: #f3f4f6;
-      color: #111827;
-      border: 1px solid #e5e7eb;
-    }
+        .coming-soon-badge {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: linear-gradient(135deg, #FFA500 0%, #FF8C00 100%);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(255, 165, 0, 0.3);
+        }
 
-    .btn-danger {
-      background: #fee2e2;
-      color: #b91c1c;
-      border: 1px solid #fecaca;
-      padding: 4px 10px;
-      font-size: 12px;
-    }
+        .service-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
 
-    .btn:hover {
-      transform: translateY(-1px);
-    }
+        .service-card h3 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: #333;
+        }
 
-    .btn:active {
-      transform: translateY(0);
-      box-shadow: none;
-    }
+        .service-card p {
+            color: #666;
+            line-height: 1.6;
+        }
 
-    .btn[disabled] {
-      opacity: 0.6;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
+        .service-details {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid #f0f0f0;
+        }
 
-    .footer-actions {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 20px;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
+        .service-details h4 {
+            font-size: 1.1rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
 
-    .status {
-      font-size: 13px;
-      color: #6b7280;
-    }
+        .destination-list {
+            list-style: none;
+            padding: 0;
+        }
 
-    .status.error {
-      color: #b91c1c;
-    }
+        .destination-list li {
+            padding: 0.5rem 0;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
 
-    .status.success {
-      color: #15803d;
-    }
+        .destination-list li:before {
+            content: '🏝️';
+            font-size: 1.2rem;
+        }
 
-    pre {
-      background: #0b1120;
-      color: #e5e7eb;
-      padding: 12px 14px;
-      border-radius: 12px;
-      font-size: 12px;
-      overflow-x: auto;
-      max-height: 260px;
-      margin-top: 16px;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
+        .train-routes li:before {
+            content: '🚉';
+        }
 
-    /* Transactions section */
-    .transactions-wrapper {
-      margin-top: 32px;
-      border-top: 1px solid #e5e7eb;
-      padding-top: 20px;
-    }
+        .terms-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-top: 3rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            border-left: 5px solid #667eea;
+        }
 
-    .transactions-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
+        .terms-section h3 {
+            font-size: 1.8rem;
+            color: #667eea;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
 
-    .transactions-title {
-      font-size: 18px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+        .terms-content {
+            display: grid;
+            gap: 1.5rem;
+        }
 
-    .transactions-title span {
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: #eff6ff;
-      color: #1d4ed8;
-      font-weight: 600;
-    }
+        .term-item {
+            display: flex;
+            gap: 1rem;
+            align-items: start;
+        }
 
-    .transactions-status {
-      font-size: 13px;
-      color: #6b7280;
-      margin-bottom: 8px;
-    }
+        .term-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
 
-    .transactions-status.error {
-      color: #b91c1c;
-    }
+        .term-text {
+            flex: 1;
+        }
 
-    .transactions-status.success {
-      color: #15803d;
-    }
+        .term-text h4 {
+            color: #333;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
 
-    .transactions-container {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
+        .term-text p {
+            color: #666;
+            line-height: 1.6;
+        }
 
-    .transaction-card {
-      display: flex;
-      justify-content: space-between;
-      align-items: stretch;
-      gap: 10px;
-      border-radius: 12px;
-      border: 1px solid #e5e7eb;
-      padding: 10px 12px;
-      background: #f9fafb;
-    }
+        .footer {
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 3rem;
+        }
 
-    .transaction-main {
-      flex: 1;
-      min-width: 0;
-    }
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
 
-    .transaction-title {
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
 
-    .transaction-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-bottom: 4px;
-      font-size: 12px;
-    }
+        .footer-links a:hover {
+            color: #667eea;
+        }
 
-    .pill {
-      border-radius: 999px;
-      padding: 2px 8px;
-      font-size: 11px;
-      font-weight: 500;
-    }
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
 
-    .pill-status {
-      background: #ecfdf3;
-      color: #166534;
-    }
+            .hero h1 {
+                font-size: 2rem;
+            }
 
-    .pill-time {
-      background: #eff6ff;
-      color: #1d4ed8;
-    }
+            .hero p {
+                font-size: 1rem;
+            }
 
-    .transaction-info-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px 16px;
-      font-size: 12px;
-      color: #4b5563;
-    }
+            .about-section {
+                padding: 2rem;
+            }
 
-    .transaction-info-row code {
-      font-size: 12px;
-      padding: 2px 4px;
-      border-radius: 6px;
-      background: #111827;
-      color: #e5e7eb;
-    }
-
-    .transaction-actions {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      min-width: 110px;
-    }
-
-    @media (max-width: 640px) {
-      .app {
-        padding: 16px 14px 22px;
-      }
-      .footer-actions {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      .footer-actions .btn {
-        width: 100%;
-      }
-      .transaction-card {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      .transaction-actions {
-        justify-content: flex-start;
-      }
-    }
-  </style>
+            .about-section h2 {
+                font-size: 2rem;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="app">
-    <h1>Auto Booking Tiket</h1>
-    <p class="subtitle">
-      Form ini akan mulai bekerja jam 10.00 WIB.
-    </p>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">🎫 Auto Booking Tiket</div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">Tentang Kami</a></li>
+                <li><a href="#services">Layanan</a></li>
+            </ul>
+            <a href="/login" class="btn-login">Login</a>
+        </div>
+    </nav>
 
-    <form id="bookingForm">
-      <!-- SECTION 1: TRIP INFO -->
-      <div class="section-title">
-        <span>1</span> Detail Perjalanan
-      </div>
-      <div class="grid">
-        <div class="field">
-          <label for="asal">Asal</label>
-          <select id="asal" required>
-            <option value="1" selected>Pelabuhan Muara Angke</option>
-            <option value="2">Pulau Untung Jawa</option>
-            <option value="3">Pulau Lancang</option>
-            <option value="4">Pulau Pari</option>
-            <option value="5">Pulau Payung</option>
-            <option value="6">Pulau Tidung</option>
-            <option value="7">Pulau Panggang</option>
-            <option value="8">Pulau Pramuka</option>
-            <option value="9">Pulau Kelapa</option>
-            <option value="13">Pulau Sabira</option>
-            <option value="15">Pulau Cipir - Onrust - Bidadari - Pelabuhan Muara Angke</option>
-          </select>
+    <section class="hero" id="home">
+        <h1>🚢 Pesan Tiket Perjalanan Anda</h1>
+        <p>Solusi cepat dan mudah untuk booking tiket kapal dan kereta api</p>
+    </section>
+
+    <div class="container">
+        <div class="about-section" id="about">
+            <h2>Tentang Auto Booking Tiket</h2>
+            <div class="about-content">
+                <p>
+                    <strong>Auto Booking Tiket</strong> adalah platform pemesanan tiket online terpercaya yang memudahkan Anda dalam memesan berbagai jenis transportasi. 
+                    Kami menyediakan layanan pemesanan <strong>Tiket Kapal Speed Boat Dishub ke Pulau Seribu</strong> untuk perjalanan wisata bahari Anda, 
+                    serta <strong>Tiket Kereta Api KAI Jarak Jauh</strong> untuk perjalanan antar kota yang nyaman dan aman.
+                </p>
+                <p style="margin-top: 1.5rem;">
+                    Dengan sistem booking otomatis yang canggih, kami berkomitmen memberikan pengalaman pemesanan yang cepat, mudah, dan tanpa ribet. 
+                    Nikmati perjalanan Anda dengan tenang bersama Auto Booking Tiket!
+                </p>
+            </div>
         </div>
 
-        <div class="field">
-          <label for="tujuan">Tujuan</label>
-          <select id="tujuan" required>
-            <option value="1">Pelabuhan Muara Angke</option>
-            <option value="2">Pulau Untung Jawa</option>
-            <option value="3">Pulau Lancang</option>
-            <option value="4" selected>Pulau Pari</option>
-            <option value="5">Pulau Payung</option>
-            <option value="6">Pulau Tidung</option>
-            <option value="7">Pulau Panggang</option>
-            <option value="8">Pulau Pramuka</option>
-            <option value="9">Pulau Kelapa</option>
-            <option value="13">Pulau Sabira</option>
-            <option value="15">Pulau Cipir - Onrust - Bidadari - Pelabuhan Muara Angke</option>
-          </select>
+        <div class="services" id="services">
+            <div class="service-card">
+                <div class="service-icon">🚤</div>
+                <h3>Kapal Speed Boat</h3>
+                <p>Tiket kapal speed boat Dishub ke Pulau Seribu. Nikmati perjalanan cepat dan nyaman ke destinasi wisata kepulauan favorit Anda.</p>
+                
+                <div class="service-details">
+                    <h4>Destinasi Tersedia:</h4>
+                    <ul class="destination-list">
+                        <li>Pulau Pari</li>
+                        <li>Pulau Lancang</li>
+                        <li>Pulau Untung Jawa</li>
+                        <li>Pulau Pramuka</li>
+                        <li>Pulau Kelapa</li>
+                        <li>Pulau Panggang</li>
+                        <li>Pulau Payung</li>
+                        <li>Pulau Tidung</li>
+                        <li>Pulau Sabira</li>
+                        <li>Pulau Cipir - Onrust - Bidadari - Pelabuhan Muara Angke</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="service-card coming-soon">
+                <div class="coming-soon-badge">🚧 Coming Soon</div>
+                <div class="service-icon">🚄</div>
+                <h3>Kereta Api KAI</h3>
+                <p>Fitur pemesanan tiket kereta api KAI sedang dalam tahap pengembangan. Segera hadir untuk memudahkan perjalanan jarak jauh Anda ke seluruh Indonesia.</p>
+                
+                <div class="service-details">
+                    <h4>Rute yang Akan Tersedia:</h4>
+                    <ul class="destination-list train-routes">
+                        <li>Jakarta - Surabaya</li>
+                        <li>Jakarta - Yogyakarta</li>
+                        <li>Jakarta - Bandung</li>
+                        <li>Jakarta - Semarang</li>
+                        <li>Jakarta - Solo</li>
+                        <li>Surabaya - Malang</li>
+                        <li>Dan rute lainnya...</li>
+                    </ul>
+                    <p style="margin-top: 1rem; color: #FF8C00; font-weight: 600;">
+                        🔔 Segera tersedia! Nantikan update terbaru kami.
+                    </p>
+                </div>
+            </div>
+
+            <div class="service-card">
+                <div class="service-icon">⚡</div>
+                <h3>Booking Otomatis</h3>
+                <p>Sistem booking otomatis yang cepat dan efisien. Dapatkan tiket Anda dalam hitungan menit tanpa antrian panjang.</p>
+            </div>
         </div>
 
-        <div class="field">
-          <label for="tanggal">Tanggal Berangkat</label>
-          <input id="tanggal" type="date" required />
-          <small>Default: besok, format ke API: DD-MM-YYYY (otomatis di-convert)</small>
+        <div class="terms-section">
+            <h3>🔒 Privasi & Keamanan Data</h3>
+            <div class="terms-content">
+                <div class="term-item">
+                    <div class="term-icon">✅</div>
+                    <div class="term-text">
+                        <h4>Kami Tidak Menyimpan Data Anda</h4>
+                        <p>Auto Booking Tiket tidak menyimpan data pribadi pengguna di server kami. Semua data Anda langsung dikirim ke sistem resmi penyedia layanan.</p>
+                    </div>
+                </div>
+
+                <div class="term-item">
+                    <div class="term-icon">🔐</div>
+                    <div class="term-text">
+                        <h4>Menggunakan API Resmi</h4>
+                        <p>Kami menggunakan API resmi dari Dishub untuk kapal speed boat dan API resmi KAI untuk kereta api. Data Anda aman dan terjamin keamanannya.</p>
+                    </div>
+                </div>
+
+                <div class="term-item">
+                    <div class="term-icon">🛡️</div>
+                    <div class="term-text">
+                        <h4>Transaksi Aman</h4>
+                        <p>Semua transaksi dilakukan langsung dengan sistem resmi penyedia layanan. Kami hanya sebagai jembatan untuk memudahkan pemesanan Anda.</p>
+                    </div>
+                </div>
+
+                <div class="term-item">
+                    <div class="term-icon">💯</div>
+                    <div class="term-text">
+                        <h4>100% Terpercaya</h4>
+                        <p>Tidak perlu khawatir terhadap keamanan data Anda. Sistem kami dirancang untuk menjaga privasi dan keamanan informasi pribadi Anda.</p>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-
-      <!-- PAYMENT & TICKET TYPE -->
-      <div class="grid">
-        <div class="field">
-          <label for="paymentType">Payment Type</label>
-          <select id="paymentType">
-            <option value="VA" selected>VA (Virtual Account)</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="ticketType">Tipe Tiket</label>
-          <select id="ticketType">
-            <option value="Pergi" selected>Pergi</option>
-            <option value="Pulang Pergi">Pulang Pergi</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- SECTION 2: PASSENGERS -->
-      <div class="section-title">
-        <span>2</span> Data Penumpang
-      </div>
-
-      <div id="passengersContainer" class="passengers-container"></div>
-
-      <div class="passenger-actions">
-        <button type="button" id="addPassengerBtn" class="btn btn-secondary">
-          + Add Passenger
-        </button>
-      </div>
-
-      <!-- FOOTER ACTIONS -->
-      <div class="footer-actions">
-        <div id="status" class="status"></div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          <button type="button" id="resetBtn" class="btn btn-secondary">
-            Reset
-          </button>
-          <button type="button" id="cancelBtn" class="btn btn-secondary" style="display:none;">
-            Cancel
-          </button>
-          <button type="submit" id="submitBtn" class="btn btn-primary">
-            Submit &amp; Auto Book
-          </button>
-        </div>
-      </div>
-    </form>
-
-    <pre id="result" style="display:none;"></pre>
-
-    <!-- TRANSACTIONS SECTION -->
-    <div class="transactions-wrapper">
-      <div class="transactions-header">
-        <div class="transactions-title">
-          Transaksi Aktif
-          <span>List transaction & cancel</span>
-        </div>
-        <button type="button" id="refreshTransactionsBtn" class="btn btn-secondary">
-          Refresh
-        </button>
-      </div>
-      <div id="transactionsStatus" class="transactions-status"></div>
-      <div id="transactionsContainer" class="transactions-container">
-        <!-- cards transaksi akan diisi via JS -->
-      </div>
     </div>
 
-    <!-- Template untuk 1 passenger card -->
-    <template id="passengerTemplate">
-      <div class="passenger-card">
-        <div class="passenger-header">
-          <div class="passenger-title">Passenger</div>
-          <span class="badge">Penumpang</span>
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="#home">Home</a>
+            <a href="#about">Tentang Kami</a>
+            <a href="#services">Layanan</a>
+            <a href="/login">Login</a>
         </div>
-        <div class="grid">
-          <div class="field">
-            <label>Nama Lengkap</label>
-            <input type="text" class="passenger-name" placeholder="Nama sesuai identitas" required />
-          </div>
-          <div class="field">
-            <label>Type</label>
-            <select class="passenger-type">
-              <option value="Adult">Adult</option>
-              <option value="Child">Child</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Jenis Identitas</label>
-            <input type="text" class="passenger-identity" value="KTP" />
-          </div>
-          <div class="field">
-            <label>Nomor Identitas</label>
-            <input type="text" class="passenger-identity-number" placeholder="Nomor KTP / identitas" required />
-          </div>
-        </div>
-        <div class="passenger-actions">
-          <button type="button" class="btn btn-danger remove-passenger">Remove</button>
-        </div>
-      </div>
-    </template>
+        <p>&copy; 2025 Auto Booking Tiket. All rights reserved.</p>
+    </footer>
 
     <script>
-      const passengersContainer = document.getElementById("passengersContainer");
-      const template = document.getElementById("passengerTemplate");
-      const addPassengerBtn = document.getElementById("addPassengerBtn");
-      const bookingForm = document.getElementById("bookingForm");
-      const statusEl = document.getElementById("status");
-      const resultEl = document.getElementById("result");
-      const submitBtn = document.getElementById("submitBtn");
-      const cancelBtn = document.getElementById("cancelBtn");
-      const resetBtn = document.getElementById("resetBtn");
-
-      const transactionsContainer = document.getElementById("transactionsContainer");
-      const transactionsStatusEl = document.getElementById("transactionsStatus");
-      const refreshTransactionsBtn = document.getElementById("refreshTransactionsBtn");
-
-      const STORAGE_KEY_FORM = "autoBookForm";
-      const STORAGE_KEY_PASSENGERS = "autoBookPassengers";
-
-      // flag & counter untuk auto retry
-      let isRetrying = false;
-      let attemptCount = 0;
-      let retryTimeoutId = null;
-
-      // Helper: format tanggal YYYY-MM-DD -> DD-MM-YYYY
-      function formatDateToDDMMYYYY(dateStr) {
-        if (!dateStr) return "";
-        const [year, month, day] = dateStr.split("-");
-        if (!year || !month || !day) return dateStr;
-        return `${day}-${month}-${year}`;
-      }
-
-      // Helper: dapatkan tanggal besok dalam format YYYY-MM-DD
-      function getTomorrowISODate() {
-        const now = new Date();
-        now.setDate(now.getDate() + 1);
-        const y = now.getFullYear();
-        const m = String(now.getMonth() + 1).padStart(2, "0");
-        const d = String(now.getDate()).padStart(2, "0");
-        return `${y}-${m}-${d}`;
-      }
-
-      // Helper: format rupiah sederhana
-      function formatRupiah(amount) {
-        if (typeof amount !== "number") amount = Number(amount) || 0;
-        return "Rp " + amount.toLocaleString("id-ID");
-      }
-
-      // Helper: update nomor/label passenger
-      function refreshPassengerTitles() {
-        const cards = passengersContainer.querySelectorAll(".passenger-card");
-        cards.forEach((card, index) => {
-          const titleEl = card.querySelector(".passenger-title");
-          if (titleEl) {
-            titleEl.textContent = `Passenger ${index + 1}`;
-          }
-        });
-      }
-
-      // Simpan form ke localStorage
-      function saveFormToStorage() {
-        const formData = {
-          asal: document.getElementById("asal").value,
-          tujuan: document.getElementById("tujuan").value,
-          tanggal: document.getElementById("tanggal").value,
-          paymentType: document.getElementById("paymentType").value,
-          ticketType: document.getElementById("ticketType").value,
-        };
-        try {
-          localStorage.setItem(STORAGE_KEY_FORM, JSON.stringify(formData));
-        } catch (e) {
-          console.warn("Gagal menyimpan form ke localStorage", e);
-        }
-      }
-
-      // Load form dari localStorage
-      function loadFormFromStorage() {
-        try {
-          const raw = localStorage.getItem(STORAGE_KEY_FORM);
-          if (!raw) return;
-          const formData = JSON.parse(raw);
-          if (!formData || typeof formData !== "object") return;
-
-          if (formData.asal) document.getElementById("asal").value = formData.asal;
-          if (formData.tujuan) document.getElementById("tujuan").value = formData.tujuan;
-          if (formData.tanggal) document.getElementById("tanggal").value = formData.tanggal;
-          if (formData.paymentType) document.getElementById("paymentType").value = formData.paymentType;
-          if (formData.ticketType) document.getElementById("ticketType").value = formData.ticketType;
-        } catch (e) {
-          console.warn("Gagal load form dari localStorage", e);
-        }
-      }
-
-      // Simpan semua passenger ke localStorage
-      function savePassengersToStorage() {
-        const passengerCards = passengersContainer.querySelectorAll(".passenger-card");
-        const passengers = [];
-
-        passengerCards.forEach((card) => {
-          const name = card.querySelector(".passenger-name").value.trim();
-          const type = card.querySelector(".passenger-type").value || "Adult";
-          const identity = card.querySelector(".passenger-identity").value.trim() || "KTP";
-          const identityNumber = card.querySelector(".passenger-identity-number").value.trim();
-
-          if (name || identityNumber) {
-            passengers.push({
-              name,
-              type,
-              identity,
-              identity_number: identityNumber,
+        // Smooth scroll untuk anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
             });
-          }
         });
 
-        try {
-          localStorage.setItem(STORAGE_KEY_PASSENGERS, JSON.stringify(passengers));
-        } catch (e) {
-          console.warn("Gagal menyimpan passengers ke localStorage", e);
-        }
-      }
-
-      // Load passenger dari localStorage
-      function loadPassengersFromStorage() {
-        let loaded = false;
-        try {
-          const raw = localStorage.getItem(STORAGE_KEY_PASSENGERS);
-          if (!raw) return loaded;
-          const passengers = JSON.parse(raw);
-          if (Array.isArray(passengers) && passengers.length > 0) {
-            passengersContainer.innerHTML = "";
-            passengers.forEach((p) => {
-              addPassenger(p, { save: false });
-            });
-            refreshPassengerTitles();
-            loaded = true;
-          }
-        } catch (e) {
-          console.warn("Gagal load passengers dari localStorage", e);
-        }
-        return loaded;
-      }
-
-      // Tambah 1 passenger card baru
-      function addPassenger(defaultValues = {}, options = { save: true }) {
-        const clone = template.content.cloneNode(true);
-        const card = clone.querySelector(".passenger-card");
-
-        if (defaultValues.name) {
-          card.querySelector(".passenger-name").value = defaultValues.name;
-        }
-        if (defaultValues.type) {
-          card.querySelector(".passenger-type").value = defaultValues.type;
-        }
-        if (defaultValues.identity) {
-          card.querySelector(".passenger-identity").value = defaultValues.identity;
-        }
-        if (defaultValues.identity_number) {
-          card.querySelector(".passenger-identity-number").value = defaultValues.identity_number;
-        }
-
-        passengersContainer.appendChild(card);
-        refreshPassengerTitles();
-
-        if (options.save !== false) {
-          savePassengersToStorage();
-        }
-      }
-
-      // Inisialisasi form & passengers
-      loadFormFromStorage();
-      if (!document.getElementById("tanggal").value) {
-        document.getElementById("tanggal").value = getTomorrowISODate();
-      }
-      const hasLoadedPassengers = loadPassengersFromStorage();
-      if (!hasLoadedPassengers) {
-        addPassenger({}, { save: false });
-      }
-
-      // Event: klik Add Passenger
-      addPassengerBtn.addEventListener("click", () => {
-        addPassenger();
-      });
-
-      // Event delegation: remove passenger
-      passengersContainer.addEventListener("click", (e) => {
-        if (e.target.classList.contains("remove-passenger")) {
-          const card = e.target.closest(".passenger-card");
-          if (card) {
-            card.remove();
-            refreshPassengerTitles();
-            savePassengersToStorage();
-          }
-        }
-      });
-
-      // Auto-save passenger saat ada perubahan input
-      passengersContainer.addEventListener("input", () => {
-        savePassengersToStorage();
-      });
-
-      // Auto-save form saat ada perubahan
-      bookingForm.addEventListener("input", (e) => {
-        if (["asal", "tujuan", "tanggal", "paymentType", "ticketType"].includes(e.target.id)) {
-          saveFormToStorage();
-        }
-      });
-
-      // Disable/enable form saat auto-retry berjalan
-      function setFormDisabled(disabled) {
-        const inputs = bookingForm.querySelectorAll("input, select, button");
-        inputs.forEach((el) => {
-          // cancel & reset masih bisa dipakai
-          if (el === cancelBtn || el === resetBtn) return;
-          el.disabled = disabled;
-        });
-      }
-
-      // Fungsi utama: auto kirim request setiap detik sampai berhasil
-      async function startAutoBooking(payload) {
-        if (isRetrying) return;
-
-        isRetrying = true;
-        attemptCount = 0;
-
-        setFormDisabled(true);
-        submitBtn.textContent = "Mengirim (auto retry)...";
-        cancelBtn.style.display = "inline-flex";
-        cancelBtn.disabled = false;
-
-        async function attempt() {
-          if (!isRetrying) return;
-
-          attemptCount++;
-          statusEl.className = "status";
-          statusEl.textContent = `Percobaan #${attemptCount} mengirim ke http://localhost:8080/auto-book ...`;
-
-          try {
-            const response = await fetch("http://localhost:8080/auto-book", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(payload),
-            });
-
-            const data = await response.json().catch(() => null);
-
-            resultEl.style.display = "block";
-            resultEl.textContent = JSON.stringify(
-              {
-                requestBody: payload,
-                responseStatus: response.status,
-                responseBody: data,
-                attempt: attemptCount,
-              },
-              null,
-              2
-            );
-
-            if (response.ok) {
-              statusEl.textContent = `Request berhasil pada percobaan ke-${attemptCount}.`;
-              statusEl.className = "status success";
-              isRetrying = false;
-              if (retryTimeoutId) {
-                clearTimeout(retryTimeoutId);
-                retryTimeoutId = null;
-              }
-              setFormDisabled(false);
-              submitBtn.textContent = "Submit & Auto Book";
-              cancelBtn.style.display = "none";
-              return;
-            } else {
-              statusEl.textContent = `Percobaan #${attemptCount} gagal (status ${response.status}). Retry lagi dalam 1 detik...`;
-              statusEl.className = "status error";
-              retryTimeoutId = setTimeout(() => {
-                attempt();
-              }, 1000);
-            }
-          } catch (err) {
-            resultEl.style.display = "block";
-            resultEl.textContent = `Error percobaan #${attemptCount}: ${String(err)}`;
-            statusEl.textContent = `Error percobaan #${attemptCount}. Retry lagi dalam 1 detik...`;
-            statusEl.className = "status error";
-
-            retryTimeoutId = setTimeout(() => {
-              attempt();
-            }, 1000);
-          }
-        }
-
-        attempt();
-      }
-
-      // Tombol Cancel untuk menghentikan auto retry
-      cancelBtn.addEventListener("click", () => {
-        if (!isRetrying) return;
-
-        isRetrying = false;
-
-        if (retryTimeoutId) {
-          clearTimeout(retryTimeoutId);
-          retryTimeoutId = null;
-        }
-
-        setFormDisabled(false);
-        submitBtn.textContent = "Submit & Auto Book";
-        cancelBtn.style.display = "none";
-
-        statusEl.textContent = `Auto retry dibatalkan oleh user setelah ${attemptCount} percobaan.`;
-        statusEl.className = "status error";
-      });
-
-      // Tombol Reset untuk clear form + storage
-      resetBtn.addEventListener("click", () => {
-        if (isRetrying) {
-          isRetrying = false;
-          if (retryTimeoutId) {
-            clearTimeout(retryTimeoutId);
-            retryTimeoutId = null;
-          }
-        }
-
-        setFormDisabled(false);
-        submitBtn.textContent = "Submit & Auto Book";
-        cancelBtn.style.display = "none";
-
-        try {
-          localStorage.removeItem(STORAGE_KEY_FORM);
-          localStorage.removeItem(STORAGE_KEY_PASSENGERS);
-        } catch (e) {
-          console.warn("Gagal clear localStorage", e);
-        }
-
-        bookingForm.reset();
-        document.getElementById("asal").value = "1";
-        document.getElementById("tujuan").value = "4";
-        document.getElementById("paymentType").value = "VA";
-        document.getElementById("ticketType").value = "Pergi";
-        document.getElementById("tanggal").value = getTomorrowISODate();
-
-        passengersContainer.innerHTML = "";
-        addPassenger({}, { save: false });
-
-        resultEl.style.display = "none";
-        resultEl.textContent = "";
-        statusEl.textContent = "Form sudah direset.";
-        statusEl.className = "status";
-      });
-
-      // Handle submit form
-      bookingForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-        statusEl.textContent = "";
-        statusEl.className = "status";
-        resultEl.style.display = "none";
-        resultEl.textContent = "";
-
-        const asal = parseInt(document.getElementById("asal").value, 10);
-        const tujuan = parseInt(document.getElementById("tujuan").value, 10);
-        const tanggalRaw = document.getElementById("tanggal").value;
-        const paymentType = document.getElementById("paymentType").value || "VA";
-        const ticketType = document.getElementById("ticketType").value || "Pergi";
-
-        const tanggal = formatDateToDDMMYYYY(tanggalRaw);
-
-        const passengerCards = passengersContainer.querySelectorAll(".passenger-card");
-        const passengers = [];
-
-        passengerCards.forEach((card) => {
-          const name = card.querySelector(".passenger-name").value.trim();
-          const type = card.querySelector(".passenger-type").value || "Adult";
-          const identity = card.querySelector(".passenger-identity").value.trim() || "KTP";
-          const identityNumber = card.querySelector(".passenger-identity-number").value.trim();
-
-          if (name && identityNumber) {
-            passengers.push({
-              name,
-              type,
-              identity,
-              identity_number: identityNumber,
-            });
-          }
-        });
-
-        if (passengers.length === 0) {
-          statusEl.textContent = "Minimal 1 penumpang harus diisi.";
-          statusEl.classList.add("error");
-          return;
-        }
-
-        if (!tanggal) {
-          statusEl.textContent = "Tanggal belum dipilih.";
-          statusEl.classList.add("error");
-          return;
-        }
-
-        const payload = {
-          asal,
-          tujuan,
-          tanggal,
-          payment_type: paymentType,
-          ticket_type: ticketType,
-          passengers,
+        // Animasi saat scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
         };
 
-        saveFormToStorage();
-        savePassengersToStorage();
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
 
-        startAutoBooking(payload);
-      });
-
-      // =========================
-      //  TRANSACTIONS FUNCTIONS
-      // =========================
-
-      async function loadTransactions() {
-        transactionsStatusEl.textContent = "Memuat transaksi aktif...";
-        transactionsStatusEl.className = "transactions-status";
-        transactionsContainer.innerHTML = "";
-
-        try {
-          const resp = await fetch("http://localhost:8080/transactions/active");
-          const json = await resp.json().catch(() => null);
-
-          if (!resp.ok) {
-            transactionsStatusEl.textContent = `Gagal load transaksi (status ${resp.status}).`;
-            transactionsStatusEl.className = "transactions-status error";
-            return;
-          }
-
-          const data = (json && json.data) || [];
-          if (!Array.isArray(data) || data.length === 0) {
-            transactionsStatusEl.textContent = "Tidak ada transaksi aktif.";
-            transactionsStatusEl.className = "transactions-status";
-            transactionsContainer.innerHTML = "";
-            return;
-          }
-
-          transactionsStatusEl.textContent = `Menampilkan ${data.length} transaksi aktif.`;
-          transactionsStatusEl.className = "transactions-status success";
-
-          data.forEach((tx) => {
-            const card = document.createElement("div");
-            card.className = "transaction-card";
-            card.dataset.id = tx.id;
-
-            card.innerHTML = `
-              <div class="transaction-main">
-                <div class="transaction-title">#${tx.id} &mdash; ${tx.ship_name || "-"}</div>
-                <div class="transaction-meta">
-                  <span class="pill pill-status">${tx.status_name || "-"}</span>
-                  <span class="pill pill-time">Bayar sebelum ${tx.time_to_pay || "-"}</span>
-                </div>
-                <div class="transaction-info-row">
-                  <span>Payment Code: <code>${tx.payment_code || "-"}</code></span>
-                  <span>Total: ${formatRupiah(tx.total_amount || 0)}</span>
-                </div>
-              </div>
-              <div class="transaction-actions">
-                <button
-                  type="button"
-                  class="btn btn-danger btn-cancel-transaction"
-                  data-id="${tx.id}"
-                >
-                  Cancel
-                </button>
-              </div>
-            `;
-
-            transactionsContainer.appendChild(card);
-          });
-        } catch (err) {
-          console.error(err);
-          transactionsStatusEl.textContent = "Terjadi error saat mengambil transaksi (cek server / CORS).";
-          transactionsStatusEl.className = "transactions-status error";
-        }
-      }
-
-      async function cancelTransaction(id, buttonEl) {
-        if (!id) return;
-
-        const ok = window.confirm(`Yakin ingin cancel transaksi #${id}?`);
-        if (!ok) return;
-
-        const originalText = buttonEl.textContent;
-        buttonEl.disabled = true;
-        buttonEl.textContent = "Cancelling...";
-
-        try {
-          const resp = await fetch(`http://localhost:8080/transactions/${id}/cancel`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
-
-          const json = await resp.json().catch(() => null);
-
-          // TAMPILKAN SELALU response cancel (sukses / gagal) di <pre id="result">
-          resultEl.style.display = "block";
-          resultEl.textContent = JSON.stringify(
-            {
-              action: "cancel_transaction",
-              id,
-              responseStatus: resp.status,
-              responseBody: json,
-            },
-            null,
-            2
-          );
-
-          // Handling kalau gagal
-          if (!resp.ok || !json || json.success !== true) {
-            transactionsStatusEl.textContent =
-              json && json.message
-                ? `Gagal cancel: ${json.message}`
-                : `Gagal cancel (status ${resp.status}).`;
-            transactionsStatusEl.className = "transactions-status error";
-            buttonEl.disabled = false;
-            buttonEl.textContent = originalText;
-            return;
-          }
-
-          // Kalau sukses
-          transactionsStatusEl.textContent =
-            json && json.message
-              ? `Transaksi #${id} berhasil dicancel: ${json.message}`
-              : `Transaksi #${id} berhasil dicancel.`;
-          transactionsStatusEl.className = "transactions-status success";
-
-          // Refresh list transaksi
-          await loadTransactions();
-        } catch (err) {
-          console.error(err);
-          resultEl.style.display = "block";
-          resultEl.textContent = `Error cancel transaksi #${id}: ${String(err)}`;
-          transactionsStatusEl.textContent = "Error saat cancel transaksi (cek server / CORS).";
-          transactionsStatusEl.className = "transactions-status error";
-          buttonEl.disabled = false;
-          buttonEl.textContent = originalText;
-        }
-      }
-
-      // Event: klik Refresh transactions
-      refreshTransactionsBtn.addEventListener("click", () => {
-        loadTransactions();
-      });
-
-      // Event delegation: klik cancel di transaksi
-      transactionsContainer.addEventListener("click", (e) => {
-        const btn = e.target.closest(".btn-cancel-transaction");
-        if (!btn) return;
-        const id = btn.dataset.id;
-        cancelTransaction(id, btn);
-      });
-
-      // Load transaksi pertama kali saat halaman dibuka
-      loadTransactions();
+        document.querySelectorAll('.service-card, .about-section, .terms-section').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
     </script>
-  </div>
 </body>
 </html>

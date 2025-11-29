@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Auto Book Ticket - Premium</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  
+  <style>
+    :root {
+      /* Color Palette */
+      --primary: #0ea5e9;
+      --primary-dark: #0284c7;
+      --primary-light: #e0f2fe;
+      --secondary: #64748b;
+      --bg-body: #f0f9ff;
+      --surface: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --danger: #ef4444;
+      --danger-bg: #fee2e2;
+      --success: #10b981;
+      --success-bg: #dcfce7;
+      --success-text: #166534;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg-body);
+      background-image: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+      color: var(--text-main);
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 1000px;
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+      padding: 32px;
+      margin-top: 20px;
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    header {
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--primary-dark);
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle { margin: 6px 0 0; font-size: 14px; color: var(--text-muted); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .field { display: flex; flex-direction: column; margin-bottom: 8px; }
+    .field label { font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 6px; }
+    .field small { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+    input, select {
+      width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border);
+      font-size: 14px; background: #f8fafc; transition: all 0.2s;
+    }
+    input:focus, select:focus {
+      outline: none; border-color: var(--primary); background: #fff;
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+
+    /* Section Styles */
+    .section-header-wrapper {
+      display: flex; align-items: center; justify-content: space-between;
+      margin: 30px 0 16px; cursor: pointer; user-select: none;
+    }
+    .section-title { display: flex; align-items: center; gap: 12px; font-size: 16px; font-weight: 700; color: var(--text-main); }
+    .section-number { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: var(--primary); color: white; border-radius: 50%; font-size: 12px; font-weight: 700; }
+
+    .toggle-section-btn { background: none; border: none; cursor: pointer; color: var(--primary); font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+    .toggle-section-btn:hover { text-decoration: underline; }
+
+    /* Passenger Card Accordion */
+    .passengers-container { display: flex; flex-direction: column; gap: 12px; }
+    .passenger-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 0; overflow: hidden; transition: all 0.2s; }
+    .passenger-card:hover { border-color: var(--primary-light); }
+    .passenger-header { background: #f8fafc; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-bottom: 1px solid transparent; }
+    .passenger-card.expanded .passenger-header { border-bottom-color: var(--border); background: #fff; }
+    .passenger-title { font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 10px; font-size: 14px; }
+    .passenger-body { padding: 20px; display: none; animation: slideDown 0.2s ease-out; }
+    .passenger-card.expanded .passenger-body { display: block; }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+    .icon-chevron { transition: transform 0.2s; width: 18px; height: 18px; color: var(--secondary); }
+    .passenger-card.expanded .icon-chevron { transform: rotate(180deg); }
+
+    /* Buttons */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 20px; border-radius: 99px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3); }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(2, 132, 199, 0.4); }
+    .btn-secondary { background: white; border: 1px solid var(--border); color: var(--text-main); }
+    .btn-secondary:hover:not(:disabled) { background: #f8fafc; border-color: var(--secondary); }
+    .btn-danger { background: var(--danger-bg); color: var(--danger); padding: 6px 14px; font-size: 12px; }
+    .btn-danger:hover { background: #fecaca; }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
+
+    .footer-actions { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 12px; flex-wrap: wrap; }
+
+    /* Transactions Styles */
+    .transactions-wrapper { margin-top: 40px; background: #f8fafc; border-radius: 12px; padding: 24px; border: 1px solid var(--border); }
+    
+    .transaction-card {
+      background: white; border: 1px solid var(--border); border-radius: 12px; padding: 20px;
+      display: flex; flex-direction: column; gap: 16px; margin-bottom: 16px;
+      box-shadow: var(--shadow-sm); transition: transform 0.2s;
+    }
+    .transaction-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+    .tx-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px dashed var(--border); padding-bottom: 12px; }
+    .tx-title { font-weight: 700; font-size: 15px; color: var(--text-main); }
+    .tx-ship { font-size: 13px; color: var(--text-muted); margin-top: 4px; display: block;}
+    
+    .pill { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; }
+    .pill-info { background: var(--primary-light); color: var(--primary-dark); }
+    .pill-success { background: var(--success-bg); color: var(--success-text); }
+
+    .tx-body { display: flex; gap: 20px; flex-wrap: wrap; }
+    .tx-col { flex: 1; min-width: 140px; }
+    .tx-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 4px; }
+    .tx-value { font-size: 14px; color: var(--text-main); font-weight: 500; }
+    .tx-amount { font-size: 18px; font-weight: 700; color: var(--primary-dark); }
+
+    /* Payment Code / QR Area */
+    .tx-footer { background: #f1f5f9; padding: 12px; border-radius: 8px; margin-top: 4px; }
+    .code-display { font-family: monospace; font-size: 14px; background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); word-break: break-all; display: flex; justify-content: space-between; align-items: center; }
+    
+    .qr-wrapper { display: flex; justify-content: center; background: white; padding: 16px; border-radius: 8px; border: 1px solid var(--border); margin-top: 8px; }
+    .qr-label { text-align: center; font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+
+    /* Toast */
+    #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
+    .toast { background: white; border-left: 4px solid var(--primary); padding: 16px 20px; border-radius: 8px; box-shadow: var(--shadow-md); font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 10px; min-width: 300px; animation: slideIn 0.3s; }
+    .toast.error { border-color: var(--danger); color: var(--danger); }
+    .toast.success { border-color: var(--success); color: var(--success); }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    /* Utilities */
+    .hidden { display: none !important; }
+    pre { background: #1e293b; color: #e2e8f0; padding: 16px; border-radius: 10px; font-size: 12px; overflow-x: auto; display: none; margin-top: 20px; }
+
+    @media (max-width: 640px) {
+      .app { padding: 20px; margin-top: 0; border-radius: 0; box-shadow: none; min-height: 100vh;}
+      .footer-actions { flex-direction: column-reverse; }
+      .footer-actions .btn { width: 100%; }
+      .tx-body { flex-direction: column; gap: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="toast-container"></div>
+
+  <div class="app">
+    <header>
+      <div>
+        <h1>Auto Booking Tiket</h1>
+        <p class="subtitle">Otomatisasi pemesanan dengan QRIS Generator otomatis.</p>
+      </div>
+      <button id="logoutBtn" class="btn btn-secondary" title="Keluar">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>
+        Logout
+      </button>
+    </header>
+
+    <form id="bookingForm">
+      <div class="section-header-wrapper">
+        <div class="section-title">
+          <div class="section-number">1</div>
+          <span>Detail Perjalanan</span>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="field">
+          <label>Asal Keberangkatan</label>
+           <select id="asal" required>
+            <option value="1" selected>Pelabuhan Muara Angke</option>
+            <option value="2">Pulau Untung Jawa</option>
+            <option value="3">Pulau Lancang</option>
+            <option value="4">Pulau Pari</option>
+            <option value="5">Pulau Payung</option>
+            <option value="6">Pulau Tidung</option>
+            <option value="7">Pulau Panggang</option>
+            <option value="8">Pulau Pramuka</option>
+            <option value="9">Pulau Kelapa</option>
+            <option value="13">Pulau Sabira</option>
+            <option value="15">Pulau Cipir - Onrust - Bidadari - Pelabuhan Muara Angke</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Tujuan Destinasi</label>
+          <select id="tujuan" required>
+            <option value="1">Pelabuhan Muara Angke</option>
+            <option value="2">Pulau Untung Jawa</option>
+            <option value="3">Pulau Lancang</option>
+            <option value="4" selected>Pulau Pari</option>
+            <option value="5">Pulau Payung</option>
+            <option value="6">Pulau Tidung</option>
+            <option value="7">Pulau Panggang</option>
+            <option value="8">Pulau Pramuka</option>
+            <option value="9">Pulau Kelapa</option>
+            <option value="13">Pulau Sabira</option>
+            <option value="15">Pulau Cipir - Onrust - Bidadari - Pelabuhan Muara Angke</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Tanggal Berangkat</label>
+          <input id="tanggal" type="date" required />
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top: 16px;">
+        <div class="field">
+          <label>Metode Pembayaran</label>
+          <select id="paymentType"><option value="VA" selected>VA (Virtual Account)</option></select>
+        </div>
+        <div class="field">
+          <label>Tipe Tiket</label>
+          <select id="ticketType">
+            <option value="Pergi" selected>Sekali Jalan (One Way)</option>
+            <option value="Pulang Pergi">Pulang Pergi (Round Trip)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="section-header-wrapper" id="passengerSectionHeader">
+        <div class="section-title">
+          <div class="section-number">2</div>
+          <span>Data Penumpang (<span id="passengerCountDisplay">0</span>)</span>
+        </div>
+        <button type="button" class="toggle-section-btn" id="togglePassengerSectionBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon-chevron" id="sectionChevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+          <span id="toggleText">Hide</span>
+        </button>
+      </div>
+
+      <div id="passengerSectionBody">
+        <div id="passengersContainer" class="passengers-container"></div>
+        <div style="margin-top: 20px;">
+          <button type="button" id="addPassengerBtn" class="btn btn-secondary" style="width: 100%; border-style: dashed;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Tambah Penumpang
+          </button>
+        </div>
+      </div>
+
+      <div class="footer-actions">
+        <button type="button" id="resetBtn" class="btn btn-secondary">Reset</button>
+        <button type="button" id="cancelBtn" class="btn btn-danger" style="display:none;">Stop Retry</button>
+        <button type="submit" id="submitBtn" class="btn btn-primary">Mulai Auto Book</button>
+      </div>
+    </form>
+
+    <pre id="result"></pre>
+
+    <div class="transactions-wrapper">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h3 style="margin:0; font-size:18px;">Riwayat Transaksi</h3>
+        <button type="button" id="refreshTransactionsBtn" class="btn btn-secondary" style="padding: 6px 12px; font-size:12px;">Refresh</button>
+      </div>
+      <div id="transactionsStatus" style="font-size:13px; color:var(--text-muted); margin-bottom:12px;"></div>
+      <div id="transactionsContainer"></div>
+    </div>
+  </div>
+
+  <template id="passengerTemplate">
+    <div class="passenger-card expanded">
+      <div class="passenger-header toggle-card-btn">
+        <div class="passenger-title">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" style="color:var(--primary)">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          <span class="p-title-text">Passenger 1</span>
+          <span class="p-name-preview" style="font-weight:400; color:var(--text-muted); margin-left:8px; font-size:13px;"></span>
+        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon-chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
+      <div class="passenger-body">
+        <div class="grid">
+          <div class="field"><label>Nama Lengkap</label><input type="text" class="passenger-name" placeholder="Sesuai KTP" required /></div>
+          <div class="field"><label>Tipe</label><select class="passenger-type"><option value="Adult">Dewasa (Adult)</option><option value="Child">Anak (Child)</option></select></div>
+          <div class="field"><label>No. Identitas</label><input type="text" class="passenger-identity-number" placeholder="16 digit NIK" required /></div>
+        </div>
+        <div style="margin-top:16px; display:flex; justify-content:flex-end;">
+            <button type="button" class="btn btn-danger remove-passenger">Hapus Penumpang Ini</button>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    const token = localStorage.getItem("authToken");
+    if (!token) window.location.href = "/";
+    const API_BASE = "http://localhost:8080";
+    const STORAGE_KEY_FORM = "autoBookForm_v4";
+    const STORAGE_KEY_PASSENGERS = "autoBookPassengers_v4";
+
+    const els = {
+      form: document.getElementById("bookingForm"),
+      passengersContainer: document.getElementById("passengersContainer"),
+      passengerTemplate: document.getElementById("passengerTemplate"),
+      passengerSectionBody: document.getElementById("passengerSectionBody"),
+      togglePassengerSectionBtn: document.getElementById("togglePassengerSectionBtn"),
+      passengerCountDisplay: document.getElementById("passengerCountDisplay"),
+      sectionChevron: document.getElementById("sectionChevron"),
+      toggleText: document.getElementById("toggleText"),
+      
+      btn: {
+        addPassenger: document.getElementById("addPassengerBtn"),
+        submit: document.getElementById("submitBtn"),
+        cancel: document.getElementById("cancelBtn"),
+        reset: document.getElementById("resetBtn"),
+        logout: document.getElementById("logoutBtn"),
+        refreshTx: document.getElementById("refreshTransactionsBtn")
+      },
+      input: {
+        asal: document.getElementById("asal"),
+        tujuan: document.getElementById("tujuan"),
+        tanggal: document.getElementById("tanggal"),
+        payType: document.getElementById("paymentType"),
+        ticketType: document.getElementById("ticketType")
+      },
+      display: {
+        result: document.getElementById("result"),
+        txContainer: document.getElementById("transactionsContainer"),
+        txStatus: document.getElementById("transactionsStatus"),
+        toastContainer: document.getElementById("toast-container")
+      }
+    };
+
+    let isRetrying = false;
+    let attemptCount = 0;
+    let retryTimeoutId = null;
+
+    // --- UTILS ---
+    function showToast(message, type = "normal") {
+      const toast = document.createElement("div");
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<span>${message}</span>`;
+      els.display.toastContainer.appendChild(toast);
+      setTimeout(() => { toast.style.opacity="0"; setTimeout(()=>toast.remove(),300); }, 3000);
+    }
+
+    function formatRupiah(amount) {
+      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
+    }
+    
+    function formatDateToDDMMYYYY(dateStr) {
+      if (!dateStr) return "";
+      const [y, m, d] = dateStr.split("-");
+      return `${d}-${m}-${y}`;
+    }
+
+    // --- LOGIC TRANSAKSI & QR ---
+    async function loadTransactions() {
+      els.display.txStatus.textContent = "Mengambil data...";
+      els.display.txContainer.innerHTML = "";
+      
+      try {
+        const res = await fetch(`${API_BASE}/transactions/active`, { headers: { "Authorization": `Bearer ${token}` } });
+        const json = await res.json();
+        
+        if(json.data && json.data.length > 0) {
+            els.display.txStatus.textContent = "";
+            
+            // Loop semua data (bukan cuma 1)
+            json.data.forEach(tx => {
+                renderTransactionCard(tx);
+            });
+            
+        } else {
+            els.display.txStatus.textContent = "Tidak ada transaksi.";
+        }
+      } catch(e) { 
+        els.display.txStatus.textContent = "Error loading data."; 
+        showToast("Gagal memuat transaksi", "error");
+      }
+    }
+
+    function renderTransactionCard(tx) {
+        // Deteksi Tipe Pembayaran (QRIS / VA)
+        // Logika sederhana: jika panjang string > 50 karakter, anggap QRIS string
+        const isQris = tx.payment_code && tx.payment_code.length > 50;
+        const isSuccess = tx.status_name.toLowerCase().includes("berhasil") || tx.status_name.toLowerCase().includes("success");
+        
+        const card = document.createElement("div");
+        card.className = "transaction-card";
+        
+        // Header HTML
+        let html = `
+          <div class="tx-header">
+             <div>
+                <div class="tx-title">ID #${tx.id}</div>
+                <span class="tx-ship">${tx.ship_name || "Kapal Express"}</span>
+             </div>
+             <span class="pill ${isSuccess ? 'pill-success' : 'pill-info'}">${tx.status_name}</span>
+          </div>
+          
+          <div class="tx-body">
+             <div class="tx-col">
+                <div class="tx-label">Batas Bayar</div>
+                <div class="tx-value">${tx.time_to_pay || "-"}</div>
+             </div>
+             <div class="tx-col">
+                <div class="tx-label">Total Tagihan</div>
+                <div class="tx-amount">${formatRupiah(tx.total_amount)}</div>
+             </div>
+          </div>
+        `;
+
+        // Payment Footer HTML
+        html += `<div class="tx-footer">`;
+        
+        if (isQris) {
+            // Tampilan QRIS
+            html += `
+                <div class="tx-label" style="text-align:center;">Scan QRIS untuk membayar</div>
+                <div class="qr-wrapper">
+                    <div id="qrcode-${tx.id}"></div>
+                </div>
+            `;
+        } else {
+            // Tampilan VA / Kode Pendek
+            html += `
+                <div class="tx-label">Kode Pembayaran / VA</div>
+                <div class="code-display">
+                    <span>${tx.payment_code}</span>
+                    <button type="button" class="btn btn-secondary" style="padding:4px 8px; font-size:11px;" onclick="navigator.clipboard.writeText('${tx.payment_code}');showToast('Disalin!', 'success')">Copy</button>
+                </div>
+            `;
+        }
+        
+        html += `</div>`; // Close footer
+
+        // Cancel Button (Hanya jika belum berhasil)
+        if (!isSuccess) {
+            html += `
+                <div style="display:flex; justify-content:flex-end;">
+                    <button class="btn btn-danger btn-cancel-tx" data-id="${tx.id}">Batalkan Transaksi</button>
+                </div>
+            `;
+        }
+
+        card.innerHTML = html;
+        els.display.txContainer.appendChild(card);
+
+        // Render QR Code jika QRIS
+        if (isQris) {
+            setTimeout(() => {
+                const el = document.getElementById(`qrcode-${tx.id}`);
+                if (el) {
+                    el.innerHTML = ""; // Clear
+                    new QRCode(el, {
+                        text: tx.payment_code,
+                        width: 150,
+                        height: 150,
+                        colorDark : "#000000",
+                        colorLight : "#ffffff",
+                        correctLevel : QRCode.CorrectLevel.M
+                    });
+                }
+            }, 100);
+        }
+    }
+
+    // --- ACCORDION & STORAGE LOGIC (Tetap sama) ---
+    function saveState() {
+      const formData = {
+        asal: els.input.asal.value,
+        tujuan: els.input.tujuan.value,
+        tanggal: els.input.tanggal.value,
+        paymentType: els.input.payType.value,
+        ticketType: els.input.ticketType.value
+      };
+      localStorage.setItem(STORAGE_KEY_FORM, JSON.stringify(formData));
+
+      const passengers = [];
+      document.querySelectorAll(".passenger-card").forEach(card => {
+        passengers.push({
+          name: card.querySelector(".passenger-name").value,
+          type: card.querySelector(".passenger-type").value,
+          identity: "KTP",
+          identity_number: card.querySelector(".passenger-identity-number").value
+        });
+      });
+      localStorage.setItem(STORAGE_KEY_PASSENGERS, JSON.stringify(passengers));
+      updatePassengerTitles();
+    }
+
+    function loadState() {
+      try {
+        const formRaw = localStorage.getItem(STORAGE_KEY_FORM);
+        if (formRaw) {
+          const data = JSON.parse(formRaw);
+          if (data.asal) els.input.asal.value = data.asal;
+          if (data.tujuan) els.input.tujuan.value = data.tujuan;
+          if (data.tanggal) els.input.tanggal.value = data.tanggal;
+        }
+      } catch (e) {}
+
+      if (!els.input.tanggal.value) {
+        const now = new Date(); now.setDate(now.getDate() + 1);
+        els.input.tanggal.value = now.toISOString().split('T')[0];
+      }
+
+      els.passengersContainer.innerHTML = "";
+      try {
+        const passRaw = localStorage.getItem(STORAGE_KEY_PASSENGERS);
+        if (passRaw) {
+          const passengers = JSON.parse(passRaw);
+          if (Array.isArray(passengers) && passengers.length > 0) {
+            passengers.forEach(p => addPassengerUI(p));
+          } else { addPassengerUI(); }
+        } else { addPassengerUI(); }
+      } catch (e) { addPassengerUI(); }
+    }
+
+    function addPassengerUI(data = {}) {
+      const clone = els.passengerTemplate.content.cloneNode(true);
+      const card = clone.querySelector(".passenger-card");
+      
+      const nameInput = card.querySelector(".passenger-name");
+      const numInput = card.querySelector(".passenger-identity-number");
+      
+      if(data.name) nameInput.value = data.name;
+      if(data.type) card.querySelector(".passenger-type").value = data.type;
+      if(data.identity_number) numInput.value = data.identity_number;
+
+      nameInput.addEventListener("input", () => {
+        const preview = card.querySelector(".p-name-preview");
+        preview.textContent = nameInput.value ? `— ${nameInput.value}` : "";
+        saveState();
+      });
+      
+      if(data.name) card.querySelector(".p-name-preview").textContent = `— ${data.name}`;
+
+      els.passengersContainer.appendChild(card);
+      updatePassengerTitles();
+      saveState();
+    }
+
+    function updatePassengerTitles() {
+      const cards = document.querySelectorAll(".passenger-card");
+      els.passengerCountDisplay.textContent = cards.length;
+      cards.forEach((card, idx) => {
+        card.querySelector(".p-title-text").textContent = `Penumpang ${idx + 1}`;
+      });
+    }
+
+    let isSectionVisible = true;
+    els.togglePassengerSectionBtn.addEventListener("click", () => {
+      isSectionVisible = !isSectionVisible;
+      if (isSectionVisible) {
+        els.passengerSectionBody.classList.remove("hidden");
+        els.sectionChevron.style.transform = "rotate(0deg)";
+        els.toggleText.textContent = "Hide";
+      } else {
+        els.passengerSectionBody.classList.add("hidden");
+        els.sectionChevron.style.transform = "rotate(-90deg)";
+        els.toggleText.textContent = "Show";
+      }
+    });
+
+    els.passengersContainer.addEventListener("click", (e) => {
+      const header = e.target.closest(".toggle-card-btn");
+      if (header) {
+        const card = header.closest(".passenger-card");
+        card.classList.toggle("expanded");
+        return;
+      }
+      if (e.target.classList.contains("remove-passenger")) {
+        e.target.closest(".passenger-card").remove();
+        updatePassengerTitles();
+        saveState();
+      }
+    });
+
+    // --- AUTO BOOK LOGIC ---
+    async function startAutoBooking(payload) {
+      if (isRetrying) return;
+      isRetrying = true; 
+      attemptCount = 0;
+      
+      toggleFormState(true);
+      els.btn.submit.textContent = "Processing...";
+      els.btn.cancel.style.display = "inline-flex";
+
+      async function attempt() {
+        if (!isRetrying) return;
+        attemptCount++;
+
+        // Toast awal (opsional, bisa dihapus jika ingin notifikasi hanya muncul saat Gagal/Sukses)
+        // showToast(`Mencoba Booking #${attemptCount}...`, "normal"); 
+
+        try {
+          const res = await fetch(`${API_BASE}/auto-book`, {
+            method: "POST",
+            headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+
+          const data = await res.json().catch(() => null);
+          
+          // Tampilkan hasil raw di kotak debug (opsional)
+          // if(els.display.result) {
+          //    els.display.result.style.display = "block";
+          //    els.display.result.textContent = JSON.stringify({ attempt: attemptCount, status: res.status, response: data }, null, 2);
+          // }
+          
+          if (res.ok && data && data.success) {
+            // --- SUKSES ---
+            stopBookingProcess();
+            showToast(`Booking Berhasil pada percobaan #${attemptCount}!`, "success");
+            loadTransactions(); 
+            els.display.result.style.display = "block";
+            els.display.result.textContent = `Booking Berhasil pada percobaan #${attemptCount}!`;
+          } else {
+            // --- GAGAL (RETRY) ---
+            
+            // 1. Ambil pesan error default
+            let errorMsg = data && data.message ? data.message : `Status ${res.status}`;
+
+            // 2. Cek apakah ada detail error spesifik di 'booking_results'
+            // Contoh: "not enough tickets: available=1, passengers=3"
+            if (data && data.booking_results && Array.isArray(data.booking_results)) {
+                const specificError = data.booking_results.find(r => r.booking_error);
+                if (specificError && specificError.booking_error) {
+                    errorMsg = specificError.booking_error;
+                }
+            }
+
+            // Tampilkan Toast Error dengan Pesan Spesifik
+            showToast(`Gagal #${attemptCount}: ${errorMsg}. Retry...`, "error");
+
+            // Ulangi request
+            retryTimeoutId = setTimeout(attempt, 1000); // Retry tiap 1 detik
+          }
+
+        } catch (err) {
+          // Error Jaringan / Server Down
+          showToast(`Network Error #${attemptCount}: ${err.message}. Retry...`, "error");
+          retryTimeoutId = setTimeout(attempt, 1000);
+        }
+      }
+      
+      attempt();
+    }
+
+    function stopBookingProcess() {
+      isRetrying = false;
+      if (retryTimeoutId) clearTimeout(retryTimeoutId);
+      toggleFormState(false);
+      els.btn.cancel.style.display = "none";
+      els.btn.submit.textContent = "Mulai Auto Book";
+    }
+
+    function toggleFormState(disabled) {
+      const inputs = els.form.querySelectorAll("input, select, button");
+      inputs.forEach(el => {
+        if(el.id!=="cancelBtn" && el.id!=="resetBtn") el.disabled = disabled;
+      });
+    }
+
+    // --- EVENTS & INIT ---
+    els.display.txContainer.addEventListener("click", async (e) => {
+        if(e.target.classList.contains("btn-cancel-tx")) {
+            if(!confirm("Yakin batalkan transaksi ini?")) return;
+            const btn = e.target;
+            btn.textContent = "..."; btn.disabled = true;
+            try {
+                await fetch(`${API_BASE}/transactions/${btn.dataset.id}/cancel`, {
+                    method:"POST", headers:{"Authorization":`Bearer ${token}`}
+                });
+                showToast("Transaksi dibatalkan", "success");
+                loadTransactions();
+            } catch(err) {
+                showToast("Gagal membatalkan", "error");
+                btn.textContent = "Batalkan Transaksi"; btn.disabled = false;
+            }
+        }
+    });
+
+    els.form.addEventListener("input", (e) => { if(e.target.id && els.input[e.target.id]) saveState(); });
+    els.btn.addPassenger.addEventListener("click", () => addPassengerUI());
+    els.btn.reset.addEventListener("click", () => {
+        localStorage.removeItem(STORAGE_KEY_FORM);
+        localStorage.removeItem(STORAGE_KEY_PASSENGERS);
+        location.reload();
+    });
+    els.btn.cancel.addEventListener("click", () => stopBookingProcess());
+    els.form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const passengers = [];
+      document.querySelectorAll(".passenger-card").forEach(card => {
+         passengers.push({
+            name: card.querySelector(".passenger-name").value,
+            type: card.querySelector(".passenger-type").value,
+            identity: "KTP",
+            identity_number: card.querySelector(".passenger-identity-number").value
+         });
+      });
+      if(passengers.length===0) return showToast("Isi data penumpang!", "error");
+      
+      startAutoBooking({
+        asal: parseInt(els.input.asal.value),
+        tujuan: parseInt(els.input.tujuan.value),
+        tanggal: formatDateToDDMMYYYY(els.input.tanggal.value),
+        payment_type: els.input.payType.value,
+        ticket_type: els.input.ticketType.value,
+        passengers
+      });
+    });
+    
+    els.btn.refreshTx.addEventListener("click", loadTransactions);
+    els.btn.logout.addEventListener("click", () => { localStorage.clear(); window.location.href="/"; });
+
+    loadState();
+    loadTransactions();
+  </script>
+</body>
+</html>
