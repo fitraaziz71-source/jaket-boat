@@ -252,7 +252,7 @@
     <header>
       <div>
         <h1>Auto Booking Tiket</h1>
-        <p class="subtitle">Otomatisasi pemesanan dengan Generator otomatis.</p>
+        <p id="helloUser" class="subtitle">
       </div>
       <button id="logoutBtn" class="btn btn-secondary" title="Keluar">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18">
@@ -605,6 +605,13 @@
 
     function loadState() {
       try {
+        const name = localStorage.getItem("userName");
+
+        if (name) {
+            document.getElementById("helloUser").textContent =
+                "Selamat datang, " + name;
+        }
+        
         const formRaw = localStorage.getItem(STORAGE_KEY_FORM);
         if (formRaw) {
           const data = JSON.parse(formRaw);

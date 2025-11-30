@@ -168,6 +168,7 @@ type LoginResponse struct {
 	Message string `json:"message"`
 	Data    struct {
 		Token string `json:"token"`
+		Name  string `json:"name"`
 	} `json:"data"`
 }
 
@@ -230,9 +231,10 @@ func loginHandler(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"success": true,
-		"message": "login success",
-		"token":   encryptedToken, // Respond with the token to the user
+		"success":  true,
+		"message":  "login success",
+		"userName": loginResp.Data.Name,
+		"token":    encryptedToken, // Respond with the token to the user
 	})
 }
 

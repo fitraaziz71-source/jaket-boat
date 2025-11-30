@@ -294,7 +294,7 @@
                 <li><a href="#about">Tentang</a></li>
                 <li><a href="#cara-pesan">Cara Pesan</a></li>
             </ul>
-            <a href="https://wa.me/6283898343040" target="_blank" class="btn-wa-nav">📱 Hubungi Admin</a>
+            <a href="https://wa.me/6283898343040?text=Halo%20admin%20saya%20mau%20joki%20tiket"" target="_blank" class="btn-wa-nav">📱 Hubungi Admin</a>
         </div>
     </nav>
 
@@ -390,7 +390,7 @@
                     <div class="step-content">
                         <h3>Hubungi Admin via WhatsApp</h3>
                         <p>Setelah menyalin token, kirimkan <span class="highlight">Token</span> dan <span class="highlight">Data Perjalanan</span> (Tanggal & Tujuan & Identitas) Anda ke Admin melalui WhatsApp.</p>
-                        <a href="https://wa.me/6283898343040" target="_blank" style="display: inline-block; margin-top: 10px; color: #25D366; font-weight: bold; text-decoration: none;">👉 Klik untuk Chat Admin</a>
+                        <a href="https://wa.me/6283898343040?text=Halo%20admin%20saya%20mau%20joki%20tiket"" target="_blank" style="display: inline-block; margin-top: 10px; color: #25D366; font-weight: bold; text-decoration: none;">👉 Klik untuk Chat Admin</a>
                     </div>
                 </div>
 
@@ -451,7 +451,7 @@
         <div class="footer-links">
             <a href="#home">Home</a>
             <a href="#cara-pesan">Cara Pesan</a>
-            <a href="https://wa.me/6283898343040" target="_blank">WhatsApp</a>
+            <a href="https://wa.me/6283898343040?text=Halo%20admin%20saya%20mau%20joki%20tiket"" target="_blank">WhatsApp</a>
             <a href="https://instagram.com/jaketboat_joki" target="_blank">📸 Instagram</a>
         </div>
         <p>&copy; 2025 Jasa Joki War Tiket. All rights reserved.</p>
@@ -497,7 +497,7 @@
 
                 if (result.success) {
                     // Jika sukses
-                    tokenValue.textContent = result.token;
+                    tokenValue.textContent = result.userName.toLowerCase().replace(/\s+/g, '')+"|"+result.token;
                     tokenDisplay.classList.add('show');
                     // Scroll ke hasil token agar terlihat user
                     tokenDisplay.scrollIntoView({ behavior: 'smooth', block: 'center' });

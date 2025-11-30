@@ -180,12 +180,15 @@
         form.addEventListener("submit", async function (e) {
             e.preventDefault();
 
-            const token = document.getElementById("token").value.trim();
-
-            if (!token) {
+            const fullToken = document.getElementById("token").value.trim();
+             if (!fullToken) {
                 showError("Token tidak boleh kosong!");
                 return;
             }
+
+            const parts = fullToken.split("|");
+            const username = parts[0];
+            const pureToken = parts[1];
 
             btnLogin.disabled = true;
             btnLogin.textContent = "Memvalidasi...";
@@ -194,7 +197,7 @@
                 const res = await fetch("http://localhost:8080/transactions/active", {
                     method: "GET",
                     headers: {
-                        "Authorization": "Bearer "+ token
+                        "Authorization": "Bearer "+ pureToken
                     }
                 });
 
@@ -211,7 +214,8 @@
                 }
 
                 // VALID → simpan token
-                localStorage.setItem("authToken", token);
+                localStorage.setItem("authToken", pureToken);
+                localStorage.setItem("userName", username);
 
                 window.location.href = "/jaketboat";
 
