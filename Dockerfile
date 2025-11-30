@@ -9,8 +9,12 @@ RUN go build -o app .
 
 FROM alpine:3.19
 WORKDIR /app
+
+# Copy binary
 COPY --from=build /app/app .
-COPY index.html .
+
+# Copy ALL html files
+COPY --from=build /app/*.html .
 
 ENV PORT=8080
 EXPOSE 8080
