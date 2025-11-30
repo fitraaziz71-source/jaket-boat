@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"jaket-boat/utils"
 	"log"
 	"net/http"
 	"net/url" // <- TAMBAH INI
@@ -223,10 +224,15 @@ func loginHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(loginResp)
 	}
 
+	encryptedToken, err := utils.EncryptToken(loginResp.Data.Token)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "failed to encrypt token")
+	}
+
 	return c.JSON(fiber.Map{
 		"success": true,
 		"message": "login success",
-		"token":   loginResp.Data.Token, // Respond with the token to the user
+		"token":   encryptedToken, // Respond with the token to the user
 	})
 }
 
@@ -402,7 +408,12 @@ const (
 // ===================== Helper: /schedules =====================
 func getSchedules(asal, tujuan int, tanggal string, c *fiber.Ctx) ([]ScheduleItem, *ScheduleResponse, error) {
 	// Ambil token dari context
-	token := c.Get("Authorization")
+	authHeader := c.Get("Authorization")
+	encToken := authHeader[7:]
+	token, err := utils.DecryptToken(encToken)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	bodyStruct := struct {
 		Asal    int    `json:"asal"`
@@ -425,7 +436,7 @@ func getSchedules(asal, tujuan int, tanggal string, c *fiber.Ctx) ([]ScheduleIte
 	}
 
 	// Set Authorization header with the dynamic token
-	req.Header.Set("Authorization", token)
+	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("User-Agent", "PostmanRuntime/7.49.1")
 
@@ -463,8 +474,6 @@ func getSchedules(asal, tujuan int, tanggal string, c *fiber.Ctx) ([]ScheduleIte
 func doBooking(bookingReq ExternalBookingRequest, c *fiber.Ctx) (BookingAPIResponse, error) {
 	var bookingResp BookingAPIResponse
 
-	token := c.Get("Authorization")
-
 	jsonBody, err := json.Marshal(bookingReq)
 	if err != nil {
 		return bookingResp, err
@@ -476,7 +485,14 @@ func doBooking(bookingReq ExternalBookingRequest, c *fiber.Ctx) (BookingAPIRespo
 	}
 
 	// Set Authorization header with the dynamic token
-	req.Header.Set("Authorization", token)
+	authHeader := c.Get("Authorization")
+	encToken := authHeader[7:]
+	token, err := utils.DecryptToken(encToken)
+	if err != nil {
+		return bookingResp, err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("User-Agent", "PostmanRuntime/7.49.1")
 
@@ -498,7 +514,6 @@ func doBooking(bookingReq ExternalBookingRequest, c *fiber.Ctx) (BookingAPIRespo
 
 func createBilling(amount int, c *fiber.Ctx) (CreateBillingResponse, error) {
 	// Ambil token dari context
-	token := c.Get("Authorization")
 	var billingResp CreateBillingResponse
 
 	form := url.Values{}
@@ -512,7 +527,14 @@ func createBilling(amount int, c *fiber.Ctx) (CreateBillingResponse, error) {
 		return billingResp, err
 	}
 
-	req.Header.Set("Authorization", token)
+	authHeader := c.Get("Authorization")
+	encToken := authHeader[7:]
+	token, err := utils.DecryptToken(encToken)
+	if err != nil {
+		return billingResp, err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("User-Agent", "PostmanRuntime/7.49.1")
 
@@ -540,9 +562,14 @@ func getActiveTransactionsHandler(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	token := c.Get("Authorization")
+	authHeader := c.Get("Authorization")
+	encToken := authHeader[7:]
+	token, err := utils.DecryptToken(encToken)
+	if err != nil {
+		return fiber.NewError(401, "invalid token")
+	}
 
-	req.Header.Set("Authorization", token)
+	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := client.Do(req)
@@ -606,8 +633,14 @@ func updatePaymentCode(updateReq UpdateCodeRequest, c *fiber.Ctx) (UpdateCodeRes
 		return nil, err
 	}
 
-	token := c.Get("Authorization")
-	req.Header.Set("Authorization", token)
+	authHeader := c.Get("Authorization")
+	encToken := authHeader[7:]
+	token, err := utils.DecryptToken(encToken)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("User-Agent", "PostmanRuntime/7.49.1")
 
@@ -640,8 +673,14 @@ func cancelTransactionHandler(c *fiber.Ctx) error {
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
-	token := c.Get("Authorization")
-	req.Header.Set("Authorization", token)
+	authHeader := c.Get("Authorization")
+	encToken := authHeader[7:]
+	token, err := utils.DecryptToken(encToken)
+	if err != nil {
+		return fiber.NewError(401, "invalid token")
+	}
+
+	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("User-Agent", "PostmanRuntime/7.49.1")
 
@@ -695,8 +734,11 @@ func main() {
 	app.Get("/jaketboat", func(c *fiber.Ctx) error {
 		return c.SendFile("jaketboat.html")
 	})
-	app.Get("/login", func(c *fiber.Ctx) error {
+	app.Get("/loginAdmin", func(c *fiber.Ctx) error {
 		return c.SendFile("login.html")
+	})
+	app.Get("/accesstoken", func(c *fiber.Ctx) error {
+		return c.SendFile("accesstoken.html")
 	})
 
 	app.Use("/auto-book", authorize)
@@ -740,7 +782,12 @@ func authorize(c *fiber.Ctx) error {
 	}
 
 	// Ambil token
-	token := authHeader[7:]
+	encToken := authHeader[7:]
+
+	token, err := utils.DecryptToken(encToken)
+	if err != nil {
+		return c.Status(401).JSON(fiber.Map{"message": "invalid token"})
+	}
 
 	// Verifikasi token jika perlu (misalnya token yang valid)
 	if token == "" {

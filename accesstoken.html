@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login Token - Auto Booking</title>
+
+    <style>
+        /* RESET */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #5a7ce8, #7b4acb);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        /* CARD */
+        .login-wrapper {
+            background: #ffffff;
+            max-width: 480px;
+            width: 100%;
+            border-radius: 18px;
+            padding: 2.5rem 2rem;
+            box-shadow: 0 10px 45px rgba(0, 0, 0, 0.25);
+            animation: fadeInUp 0.6s ease;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 1.8rem;
+        }
+
+        .header .icon {
+            font-size: 4rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .header h2 {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 0.3rem;
+        }
+
+        .header p { color: #777; font-size: 0.95rem; }
+
+        /* FORM */
+        .form-group { margin-bottom: 1.6rem; }
+
+        label {
+            display: block;
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 1rem;
+            border-radius: 14px;
+            border: 2px solid #e3e3e3;
+            background: #fafafa;
+            font-size: 0.95rem;
+            resize: vertical;
+            transition: 0.25s ease;
+            line-height: 1.5;
+        }
+
+        textarea:focus {
+            border-color: #6b75ea;
+            background: #fff;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(107, 117, 234, 0.25);
+        }
+
+        /* BUTTON */
+        button {
+            width: 100%;
+            padding: 0.95rem;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #6474ec, #7c4ad1);
+            color: #fff;
+            font-size: 1.1rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.25s;
+            box-shadow: 0 5px 18px rgba(99, 113, 235, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 25px rgba(99, 113, 235, 0.55);
+        }
+
+        button:disabled {
+            background: #bbb;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* ERROR */
+        .error-box {
+            margin-top: 1rem;
+            padding: 0.8rem 1rem;
+            background: #ffe3e3;
+            border-left: 4px solid #ff5a5a;
+            border-radius: 6px;
+            color: #c62828;
+            font-size: 0.95rem;
+            display: none;
+        }
+
+        /* LINK */
+        .back-home {
+            text-align: center;
+            margin-top: 1.8rem;
+        }
+
+        .back-home a {
+            color: #576bff;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .back-home a:hover { color: #7950f2; }
+    </style>
+</head>
+<body>
+
+    <div class="login-wrapper">
+        <div class="header">
+            <div class="icon">🔐</div>
+            <h2>Login</h2>
+            <p>Tempel token enkripsi Anda untuk melanjutkan</p>
+        </div>
+
+        <form id="tokenForm">
+            <div class="form-group">
+                <label for="token">Token Enkripsi</label>
+                <textarea
+                    id="token"
+                    name="token"
+                    placeholder="Paste token di sini..."
+                    required
+                ></textarea>
+            </div>
+
+            <button type="submit" id="btnLogin">Validasi Token</button>
+
+            <div class="error-box" id="errorBox"></div>
+
+            <div class="back-home">
+                <a href="/">← Kembali ke Beranda</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const form = document.getElementById("tokenForm");
+        const btnLogin = document.getElementById("btnLogin");
+        const errorBox = document.getElementById("errorBox");
+
+        form.addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const token = document.getElementById("token").value.trim();
+
+            if (!token) {
+                showError("Token tidak boleh kosong!");
+                return;
+            }
+
+            btnLogin.disabled = true;
+            btnLogin.textContent = "Memvalidasi...";
+
+            try {
+                const res = await fetch("http://localhost:8080/transactions/active", {
+                    method: "GET",
+                    headers: {
+                        "Authorization": "Bearer "+ token
+                    }
+                });
+
+                if (res.status === 401) {
+                    showError("Token tidak valid!");
+                    resetBtn();
+                    return;
+                }
+
+                if (!res.ok) {
+                    showError("Gagal memvalidasi token. Status: " + res.status);
+                    resetBtn();
+                    return;
+                }
+
+                // VALID → simpan token
+                localStorage.setItem("authToken", token);
+
+                window.location.href = "/jaketboat";
+
+            } catch (err) {
+                showError("Terjadi kesalahan koneksi");
+                console.error(err);
+            }
+
+            resetBtn();
+        });
+
+        function showError(msg) {
+            errorBox.style.display = "block";
+            errorBox.textContent = msg;
+        }
+
+        function resetBtn() {
+            btnLogin.disabled = false;
+            btnLogin.textContent = "Validasi Token";
+        }
+
+        // Auto redirect jika sudah ada token
+        window.addEventListener("load", () => {
+            if (localStorage.getItem("authToken")) {
+                window.location.href = "/jaketboat";
+            }
+        });
+    </script>
+
+</body>
+</html>
