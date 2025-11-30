@@ -3,22 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auto Booking Tiket - Pesan Tiket Mudah & Cepat</title>
+    <title>Jasa Joki War Tiket - Speed Boat & KAI</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* --- RESET & VARIABLES --- */
+        :root {
+            --primary-grad: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-grad: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            --accent: #FF8C00;
+            --text-main: #333;
+            --bg-light: #f4f7f6;
+            --shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            color: var(--text-main);
+            background: var(--bg-light);
+            overflow-x: hidden;
         }
 
+        /* --- NAVBAR --- */
         .navbar {
             background: rgba(255, 255, 255, 0.95);
             padding: 1rem 0;
@@ -26,413 +33,409 @@
             width: 100%;
             top: 0;
             z-index: 1000;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            backdrop-filter: blur(5px);
         }
 
         .nav-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 2rem;
+            padding: 0 1.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
         .logo {
-            font-size: 1.8rem;
-            font-weight: bold;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-size: 1.4rem;
+            font-weight: 800;
+            background: var(--primary-grad);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
 
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-            list-style: none;
-        }
+        .nav-links { display: flex; gap: 2rem; list-style: none; }
+        .nav-links a { text-decoration: none; color: #333; font-weight: 600; transition: 0.3s; }
+        .nav-links a:hover { color: #667eea; }
 
-        .nav-links a {
-            text-decoration: none;
-            color: #333;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        .nav-links a:hover {
-            color: #667eea;
-        }
-
-        .btn-login {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .btn-wa-nav {
+            background: var(--secondary-grad);
             color: white;
-            padding: 0.7rem 2rem;
+            padding: 0.5rem 1.2rem;
             border-radius: 50px;
             text-decoration: none;
             font-weight: 600;
-            transition: transform 0.3s, box-shadow 0.3s;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: transform 0.2s;
         }
+        .btn-wa-nav:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(37, 211, 102, 0.3); }
 
-        .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-        }
-
+        /* --- HERO --- */
         .hero {
-            margin-top: 80px;
-            padding: 4rem 2rem;
-            text-align: center;
+            margin-top: 70px;
+            background: var(--primary-grad);
             color: white;
+            padding: 5rem 1.5rem;
+            text-align: center;
+            border-radius: 0 0 30px 30px;
         }
+        .hero h1 { font-size: 2.2rem; margin-bottom: 1rem; text-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .hero p { font-size: 1.1rem; opacity: 0.9; max-width: 600px; margin: 0 auto; }
 
-        .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
+        /* --- CONTAINER --- */
+        .container { max-width: 1100px; margin: 0 auto; padding: 3rem 1.5rem; }
 
-        .hero p {
-            font-size: 1.3rem;
-            margin-bottom: 2rem;
-            opacity: 0.95;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 3rem 2rem;
-        }
-
-        .about-section {
+        /* --- SECTIONS GENERAL --- */
+        .section-box {
             background: white;
             border-radius: 20px;
-            padding: 3rem;
+            padding: 2.5rem;
             margin-bottom: 3rem;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
         }
+        .section-box.visible { opacity: 1; transform: translateY(0); }
 
-        .about-section h2 {
-            font-size: 2.5rem;
-            margin-bottom: 1.5rem;
+        h2.section-title {
+            text-align: center;
             color: #667eea;
-            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 2rem;
         }
 
-        .about-content {
-            font-size: 1.1rem;
-            color: #555;
-            line-height: 1.8;
+        /* --- ABOUT & SERVICES --- */
+        .important-notice {
+            background: linear-gradient(135deg, #FFA500 0%, #FF8C00 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 12px;
             text-align: center;
-            max-width: 800px;
-            margin: 0 auto;
+            font-weight: bold;
+            margin-top: 1.5rem;
+            box-shadow: 0 4px 15px rgba(255, 165, 0, 0.3);
         }
 
-        .services {
+        .services-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
-            margin-top: 3rem;
         }
-
         .service-card {
             background: white;
-            border-radius: 20px;
-            padding: 2.5rem;
-            text-align: center;
-            transition: transform 0.3s, box-shadow 0.3s;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-        }
-
-        .service-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
-        }
-        
-         .service-card.coming-soon {
-            opacity: 0.7;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        }
-
-        .service-card.coming-soon:hover {
-            transform: translateY(-5px);
-        }
-
-        .coming-soon-badge {
-            position: absolute;
-            top: 1.5rem;
-            right: 1.5rem;
-            background: linear-gradient(135deg, #FFA500 0%, #FF8C00 100%);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            box-shadow: 0 4px 10px rgba(255, 165, 0, 0.3);
-        }
-
-        .service-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-        }
-
-        .service-card h3 {
-            font-size: 1.8rem;
-            margin-bottom: 1rem;
-            color: #333;
-        }
-
-        .service-card p {
-            color: #666;
-            line-height: 1.6;
-        }
-
-        .service-details {
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 2px solid #f0f0f0;
-        }
-
-        .service-details h4 {
-            font-size: 1.1rem;
-            color: #667eea;
-            margin-bottom: 1rem;
-        }
-
-        .destination-list {
-            list-style: none;
-            padding: 0;
-        }
-
-        .destination-list li {
-            padding: 0.5rem 0;
-            color: #555;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .destination-list li:before {
-            content: '🏝️';
-            font-size: 1.2rem;
-        }
-
-        .train-routes li:before {
-            content: '🚉';
-        }
-
-        .terms-section {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 2.5rem;
-            margin-top: 3rem;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            border-left: 5px solid #667eea;
-        }
-
-        .terms-section h3 {
-            font-size: 1.8rem;
-            color: #667eea;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .terms-content {
-            display: grid;
-            gap: 1.5rem;
-        }
-
-        .term-item {
-            display: flex;
-            gap: 1rem;
-            align-items: start;
-        }
-
-        .term-icon {
-            font-size: 2rem;
-            flex-shrink: 0;
-        }
-
-        .term-text {
-            flex: 1;
-        }
-
-        .term-text h4 {
-            color: #333;
-            font-size: 1.1rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .term-text p {
-            color: #666;
-            line-height: 1.6;
-        }
-
-        .footer {
-            background: rgba(0,0,0,0.8);
-            color: white;
+            border-radius: 15px;
             padding: 2rem;
             text-align: center;
-            margin-top: 3rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+            border: 1px solid #eee;
+            position: relative;
         }
+        .service-card:hover { transform: translateY(-10px); }
+        .service-card.coming-soon { opacity: 0.8; background: #f8f9fa; }
+        .badge-soon {
+            position: absolute; top: 1rem; right: 1rem;
+            background: var(--accent); color: white;
+            padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.75rem; font-weight: bold;
+        }
+        .service-icon { font-size: 3rem; margin-bottom: 1rem; }
+        .destination-list { list-style: none; text-align: left; margin-top: 1rem; padding-left: 10px; }
+        .destination-list li { margin-bottom: 5px; color: #555; }
+        .destination-list li::before { content: '🏝️ '; }
 
-        .footer-links {
+        /* --- CARA PESAN (STEPS) --- */
+        .steps-container { display: flex; flex-direction: column; gap: 2rem; }
+        
+        .step {
             display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
+            gap: 1.5rem;
+            background: #fcfcfc;
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid #f0f0f0;
+            transition: transform 0.3s;
         }
+        .step:hover { transform: translateX(5px); border-color: #667eea; }
 
-        .footer-links a {
+        .step-number {
+            background: var(--primary-grad);
             color: white;
-            text-decoration: none;
-            transition: color 0.3s;
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; font-weight: bold;
+            flex-shrink: 0;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
         }
 
-        .footer-links a:hover {
-            color: #667eea;
+        .step-content { flex: 1; }
+        .step-content h3 { color: #333; margin-bottom: 0.5rem; font-size: 1.25rem; }
+        .step-content p { color: #666; font-size: 0.95rem; }
+        .highlight { background: #fff3cd; color: #856404; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+
+        /* --- FORM LOGIN BARU (Inside Step 2) --- */
+        .login-box-modern {
+            background: white;
+            border: 2px solid #eef2f7;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.03);
+        }
+        
+        .form-title {
+            font-size: 1rem; font-weight: bold; color: #667eea;
+            margin-bottom: 1rem; text-align: center; text-transform: uppercase; letter-spacing: 1px;
         }
 
+        .input-group { margin-bottom: 1rem; }
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            transition: border 0.3s;
+        }
+        .input-group input:focus { border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
+
+        .btn-get-token {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary-grad);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-get-token:hover { opacity: 0.9; transform: translateY(-2px); }
+        .btn-get-token:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+
+        /* --- TOKEN DISPLAY --- */
+        .token-display {
+            display: none;
+            background: #e8f4fd;
+            border: 1px dashed #0077b6;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            text-align: center;
+        }
+        .token-display.show { display: block; animation: fadeIn 0.5s; }
+        
+        .token-value {
+            font-family: monospace;
+            background: white;
+            padding: 8px;
+            border-radius: 4px;
+            word-break: break-all;
+            color: #0077b6;
+            font-weight: bold;
+            margin: 0.5rem 0;
+            border: 1px solid #bde0fe;
+        }
+
+        .btn-copy {
+            background: #0077b6; color: white; border: none;
+            padding: 5px 15px; border-radius: 4px; cursor: pointer;
+            font-size: 0.85rem; margin-top: 5px;
+        }
+        .btn-copy:hover { background: #005f91; }
+
+        .privacy-note {
+            font-size: 0.8rem; color: #666; margin-top: 1rem;
+            text-align: center; background: #f9f9f9; padding: 8px; border-radius: 6px;
+        }
+
+        /* --- TERMS SECTION --- */
+        .terms-content { display: grid; gap: 1.5rem; }
+        .term-item { display: flex; gap: 1rem; align-items: flex-start; }
+        .term-icon { font-size: 1.8rem; flex-shrink: 0; }
+        .term-text h4 { margin-bottom: 0.3rem; color: #333; }
+        
+        /* --- FOOTER --- */
+        .footer {
+            background: #1a1a1a; color: #ccc;
+            padding: 3rem 1.5rem; text-align: center;
+        }
+        .footer-links {
+            display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1.5rem;
+        }
+        .footer-links a { color: white; text-decoration: none; display: flex; align-items: center; gap: 5px; }
+        .footer-links a:hover { color: #667eea; }
+
+        /* --- RESPONSIVE --- */
         @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
-
-            .hero h1 {
-                font-size: 2rem;
-            }
-
-            .hero p {
-                font-size: 1rem;
-            }
-
-            .about-section {
-                padding: 2rem;
-            }
-
-            .about-section h2 {
-                font-size: 2rem;
-            }
+            .nav-links { display: none; }
+            .hero h1 { font-size: 1.8rem; }
+            .step { flex-direction: column; padding: 1.5rem; }
+            .step-number { width: 40px; height: 40px; font-size: 1.2rem; margin-bottom: 1rem; }
+            .section-box { padding: 1.5rem; }
         }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
+
     <nav class="navbar">
         <div class="nav-container">
-            <div class="logo">🎫 Auto Booking Tiket</div>
+            <div class="logo">⚡ Jasa Joki</div>
             <ul class="nav-links">
                 <li><a href="#home">Home</a></li>
-                <li><a href="#about">Tentang Kami</a></li>
-                <li><a href="#services">Layanan</a></li>
+                <li><a href="#about">Tentang</a></li>
+                <li><a href="#cara-pesan">Cara Pesan</a></li>
             </ul>
-            <a href="/login" class="btn-login">Login</a>
+            <a href="https://wa.me/6283898343040" target="_blank" class="btn-wa-nav">📱 Hubungi Admin</a>
         </div>
     </nav>
 
     <section class="hero" id="home">
-        <h1>🚢 Pesan Tiket Perjalanan Anda</h1>
-        <p>Solusi cepat dan mudah untuk booking tiket kapal dan kereta api</p>
+        <h1>🚢 Joki War Tiket Terpercaya</h1>
+        <p>Solusi cepat menang war tiket Speed Boat & Kereta Api (KAI)</p>
     </section>
 
     <div class="container">
-        <div class="about-section" id="about">
-            <h2>Tentang Auto Booking Tiket</h2>
-            <div class="about-content">
-                <p>
-                    <strong>Auto Booking Tiket</strong> adalah platform pemesanan tiket online terpercaya yang memudahkan Anda dalam memesan berbagai jenis transportasi. 
-                    Kami menyediakan layanan pemesanan <strong>Tiket Kapal Speed Boat Dishub ke Pulau Seribu</strong> untuk perjalanan wisata bahari Anda, 
-                    serta <strong>Tiket Kereta Api KAI Jarak Jauh</strong> untuk perjalanan antar kota yang nyaman dan aman.
-                </p>
-                <p style="margin-top: 1.5rem;">
-                    Dengan sistem booking otomatis yang canggih, kami berkomitmen memberikan pengalaman pemesanan yang cepat, mudah, dan tanpa ribet. 
-                    Nikmati perjalanan Anda dengan tenang bersama Auto Booking Tiket!
-                </p>
-            </div>
-        </div>
-
-        <div class="services" id="services">
-            <div class="service-card">
-                <div class="service-icon">🚤</div>
-                <h3>Kapal Speed Boat</h3>
-                <p>Tiket kapal speed boat Dishub ke Pulau Seribu. Nikmati perjalanan cepat dan nyaman ke destinasi wisata kepulauan favorit Anda.</p>
-                
-                <div class="service-details">
-                    <h4>Destinasi Tersedia:</h4>
-                    <ul class="destination-list">
-                        <li>Pulau Pari</li>
-                        <li>Pulau Lancang</li>
-                        <li>Pulau Untung Jawa</li>
-                        <li>Pulau Pramuka</li>
-                        <li>Pulau Kelapa</li>
-                        <li>Pulau Panggang</li>
-                        <li>Pulau Payung</li>
-                        <li>Pulau Tidung</li>
-                        <li>Pulau Sabira</li>
-                        <li>Pulau Cipir - Onrust - Bidadari - Pelabuhan Muara Angke</li>
-                    </ul>
+        <div class="section-box" id="about">
+            <h2 class="section-title">Tentang Kami</h2>
+            <div style="text-align: center; max-width: 800px; margin: 0 auto;">
+                <p>Jasa Joki War Tiket membantu Anda memenangkan persaingan pemesanan tiket transportasi. Tidak perlu repot dan stress, serahkan pada ahlinya!</p>
+                <div class="important-notice">
+                    ⚠️ PENTING: Kami TIDAK MENJUAL TIKET! Kami hanya menyediakan JASA JOKI WAR TIKET.
                 </div>
             </div>
 
-            <div class="service-card coming-soon">
-                <div class="coming-soon-badge">🚧 Coming Soon</div>
-                <div class="service-icon">🚄</div>
-                <h3>Kereta Api KAI</h3>
-                <p>Fitur pemesanan tiket kereta api KAI sedang dalam tahap pengembangan. Segera hadir untuk memudahkan perjalanan jarak jauh Anda ke seluruh Indonesia.</p>
-                
-                <div class="service-details">
-                    <h4>Rute yang Akan Tersedia:</h4>
-                    <ul class="destination-list train-routes">
+            <div class="services-grid" style="margin-top: 2rem;">
+                <div class="service-card">
+                    <div class="service-icon">🚤</div>
+                    <h3>Speed Boat Dishub</h3>
+                    <p>Joki tiket ke Pulau Seribu.</p>
+                    <ul class="destination-list">
+                        <li>Pulau Tidung</li>
+                        <li>Pulau Pari</li>
+                        <li>Pulau Pramuka</li>
+                        <li>Dan lainnya...</li>
+                    </ul>
+                </div>
+
+                <div class="service-card coming-soon">
+                    <div class="badge-soon">Coming Soon</div>
+                    <div class="service-icon">🚄</div>
+                    <h3>Kereta Api KAI</h3>
+                    <p>Segera hadir untuk tiket kereta api.</p>
+                    <ul class="destination-list" style="margin-top: 2.2rem;">
                         <li>Jakarta - Surabaya</li>
                         <li>Jakarta - Yogyakarta</li>
-                        <li>Jakarta - Bandung</li>
-                        <li>Jakarta - Semarang</li>
-                        <li>Jakarta - Solo</li>
-                        <li>Surabaya - Malang</li>
-                        <li>Dan rute lainnya...</li>
+                        <li>Dan lainnya...</li>
                     </ul>
-                    <p style="margin-top: 1rem; color: #FF8C00; font-weight: 600;">
-                        🔔 Segera tersedia! Nantikan update terbaru kami.
-                    </p>
                 </div>
-            </div>
-
-            <div class="service-card">
-                <div class="service-icon">⚡</div>
-                <h3>Booking Otomatis</h3>
-                <p>Sistem booking otomatis yang cepat dan efisien. Dapatkan tiket Anda dalam hitungan menit tanpa antrian panjang.</p>
             </div>
         </div>
 
-        <div class="terms-section">
-            <h3>🔒 Privasi & Keamanan Data</h3>
-            <div class="terms-content">
-                <div class="term-item">
-                    <div class="term-icon">✅</div>
-                    <div class="term-text">
-                        <h4>Kami Tidak Menyimpan Data Anda</h4>
-                        <p>Auto Booking Tiket tidak menyimpan data pribadi pengguna di server kami. Semua data Anda langsung dikirim ke sistem resmi penyedia layanan.</p>
+        <div class="section-box" id="cara-pesan">
+            <h2 class="section-title">📋 Cara Pesan</h2>
+            
+            <div class="steps-container">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Daftar Akun JaketBoat</h3>
+                        <p>Pastikan Anda sudah mendaftar di aplikasi resmi JaketBoat. Akun ini diperlukan agar tiket yang didapat langsung masuk ke akun Anda.</p>
                     </div>
                 </div>
 
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Login & Dapatkan Token</h3>
+                        <p>Login di bawah ini untuk mendapatkan <span class="highlight">Token Akses</span>. Token ini berfungsi sebagai "kunci" agar kami bisa membantu proses war tiket Anda dan tiket langsung masuk ke list transaksi anda.</p>
+                        
+                        <div class="login-box-modern">
+                            <div class="form-title">🔐 Form Ambil Token</div>
+                            <form id="loginForm" onsubmit="handleLogin(event)">
+                                <div class="input-group">
+                                    <input type="number" id="phone" placeholder="Nomor HP (Contoh: 08123456789)" required>
+                                </div>
+                                <div class="input-group">
+                                    <input type="password" id="password" placeholder="Password" required>
+                                </div>
+                                <button type="submit" id="loginBtn" class="btn-get-token">Dapatkan Token</button>
+                                <p id="errorMsg" style="color: red; font-size: 0.9rem; margin-top: 10px; display: none; text-align: center;"></p>
+                            </form>
+
+                            <div id="tokenDisplay" class="token-display">
+                                <p style="font-size: 0.9rem; margin-bottom: 5px;">Token Anda:</p>
+                                <div class="token-value" id="tokenValue"></div>
+                                <button class="btn-copy" onclick="copyToken()">📄 Salin Token</button>
+                                <p style="font-size: 0.8rem; color: #666; margin-top: 8px;">Silakan salin token ini untuk dikirim ke Admin.</p>
+                            </div>
+
+                            <div class="privacy-note">
+                                🛡️ <strong>Privasi Dijamin:</strong> Kami menggunakan sistem <em>Bridge</em>. Data login Anda langsung diteruskan ke server resmi tanpa disimpan di database kami.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Hubungi Admin via WhatsApp</h3>
+                        <p>Setelah menyalin token, kirimkan <span class="highlight">Token</span> dan <span class="highlight">Data Perjalanan</span> (Tanggal & Tujuan & Identitas) Anda ke Admin melalui WhatsApp.</p>
+                        <a href="https://wa.me/6283898343040" target="_blank" style="display: inline-block; margin-top: 10px; color: #25D366; font-weight: bold; text-decoration: none;">👉 Klik untuk Chat Admin</a>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Proses War Tiket</h3>
+                        <p>Admin akan segera memproses antrian joki. Kami akan menggunakan sistem cepat untuk mengamankan tiket Anda saat war dimulai.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <h3>Cek Aplikasi & Bayar</h3>
+                        <p>Jika berhasil, tiket akan muncul di menu <strong>Transaksi</strong> aplikasi JaketBoat Anda. Segera lakukan pembayaran di sana agar tiket tidak hangus!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-box">
+            <h2 class="section-title">📌 Informasi Penting</h2>
+            <div class="terms-content">
+                <div class="term-item">
+                    <div class="term-icon">⚠️</div>
+                    <div class="term-text">
+                        <h4>Kami Tidak Menjual Tiket</h4>
+                        <p>Kami hanya penyedia jasa bantu booking. Pembayaran tiket resmi dilakukan oleh Anda sendiri di aplikasi.</p>
+                    </div>
+                </div>
                 <div class="term-item">
                     <div class="term-icon">🔐</div>
                     <div class="term-text">
-                        <h4>Menggunakan API Resmi</h4>
-                        <p>Kami menggunakan API resmi dari Dishub untuk kapal speed boat dan API resmi KAI untuk kereta api. Data Anda aman dan terjamin keamanannya.</p>
+                        <h4>Keamanan Data (Bridge System)</h4>
+                        <p>Kami hanya menjadi jembatan. Token Anda hanya digunakan sekali untuk proses antrian dan tidak kami simpan permanen.</p>
                     </div>
                 </div>
-
                 <div class="term-item">
-                    <div class="term-icon">🛡️</div>
+                    <div class="term-icon">⚡</div>
                     <div class="term-text">
-                        <h4>Transaksi Aman</h4>
-                        <p>Semua transaksi dilakukan langsung dengan sistem resmi penyedia layanan. Kami hanya sebagai jembatan untuk memudahkan pemesanan Anda.</p>
+                        <h4>Success Rate Tinggi</h4>
+                        <p>Peluang dapat tiket sangat tinggi, namun bergantung pada ketersediaan kursi dari pihak operator.</p>
                     </div>
                 </div>
-
                 <div class="term-item">
                     <div class="term-icon">💯</div>
                     <div class="term-text">
@@ -447,48 +450,112 @@
     <footer class="footer">
         <div class="footer-links">
             <a href="#home">Home</a>
-            <a href="#about">Tentang Kami</a>
-            <a href="#services">Layanan</a>
-            <a href="/login">Login</a>
+            <a href="#cara-pesan">Cara Pesan</a>
+            <a href="https://wa.me/6283898343040" target="_blank">WhatsApp</a>
+            <a href="https://instagram.com/jaketboat_joki" target="_blank">📸 Instagram</a>
         </div>
-        <p>&copy; 2025 Auto Booking Tiket. All rights reserved.</p>
+        <p>&copy; 2025 Jasa Joki War Tiket. All rights reserved.</p>
     </footer>
 
     <script>
-        // Smooth scroll untuk anchor links
+        // --- KONFIGURASI API ---
+        const API_URL = 'http://localhost:8080/login';
+        const API_KEY = '79580|u16uKHzi7A3xdm0Jojwwxd7os01Yl5lXQJfH6btQ'; // Bearer Token Static
+
+        // --- FUNGSI LOGIN ---
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const phone = document.getElementById('phone').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('loginBtn');
+            const errorMsg = document.getElementById('errorMsg');
+            const tokenDisplay = document.getElementById('tokenDisplay');
+            const tokenValue = document.getElementById('tokenValue');
+
+            // Reset State
+            errorMsg.style.display = 'none';
+            tokenDisplay.classList.remove('show');
+            btn.disabled = true;
+            btn.textContent = 'Sedang Memproses...';
+
+            try {
+                // Hit API
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${API_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        phone: phone,
+                        password: password
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Jika sukses
+                    tokenValue.textContent = result.token;
+                    tokenDisplay.classList.add('show');
+                    // Scroll ke hasil token agar terlihat user
+                    tokenDisplay.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else {
+                    // Jika gagal (password salah dll)
+                    throw new Error(result.message || 'Login gagal. Cek nomor/password.');
+                }
+
+            } catch (err) {
+                console.error(err);
+                errorMsg.style.display = 'block';
+                if (err.message.includes('Failed to fetch')) {
+                    errorMsg.textContent = 'Gagal terhubung ke server. Pastikan Localhost aktif.';
+                } else {
+                    errorMsg.textContent = err.message;
+                }
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Dapatkan Token';
+            }
+        }
+
+        // --- FUNGSI COPY TOKEN ---
+        function copyToken() {
+            const text = document.getElementById('tokenValue').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.querySelector('.btn-copy');
+                const oriText = btn.innerText;
+                btn.innerText = '✅ Tersalin!';
+                btn.style.background = '#25D366';
+                setTimeout(() => {
+                    btn.innerText = oriText;
+                    btn.style.background = '#0077b6';
+                }, 2000);
+            }).catch(() => {
+                alert('Gagal menyalin. Silakan copy manual.');
+            });
+        }
+
+        // --- ANIMASI SCROLL (Fitur Lama) ---
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.section-box').forEach(el => observer.observe(el));
+
+        // Smooth Scroll
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
             });
-        });
-
-        // Animasi saat scroll
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-
-        const observer = new IntersectionObserver(function(entries) {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, observerOptions);
-
-        document.querySelectorAll('.service-card, .about-section, .terms-section').forEach(el => {
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(20px)';
-            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-            observer.observe(el);
         });
     </script>
 </body>
